@@ -1,7 +1,8 @@
 ﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowRight, Check, Download, GraduationCap } from "lucide-react";
+import { setRequestLocale, getTranslations } from "next-intl/server";
+import { ArrowRight, Check, GraduationCap } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/ui/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
@@ -38,21 +39,24 @@ const whyChooseUs = [
 export default async function CountryPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const tNav = await getTranslations("nav");
+  const tCountry = await getTranslations("countryIndex.hero");
   const country = getCountry(slug);
   if (!country) notFound();
 
   return (
     <>
       <PageHero
-        eyebrow="Destination"
-        title={`Study in ${country.name}`}
+        eyebrow={tCountry("eyebrow")}
+        title={country.name}
         description={country.tagline}
         crumbs={[
           { label: "EduExpert", href: "/" },
-          { label: "Country", href: "/country" },
+          { label: tNav("country"), href: "/country" },
           { label: country.name },
         ]}
       />
@@ -156,50 +160,22 @@ export default async function CountryPage({
         </div>
       </Section>
 
-      {/* Downloads */}
-      <Section eyebrow="Resources" title="Documents & forms" alt>
-        <div className="grid gap-4 md:gap-5 md:grid-cols-2 max-w-3xl mx-auto">
-          {/* TODO(client): real PDFs â€” currently both downloads are placeholders. */}
-          {[
-            { name: "TOEFL Application Form", note: "Sample TOEFL registration walk-through (PDF pending)" },
-            { name: "Terms & Conditions", note: "Service terms (PDF pending from client)" },
-          ].map((d) => (
-            <div
-              key={d.name}
-              className="flex items-start gap-4 rounded-2xl border border-[var(--color-border)] bg-white p-5 md:p-6"
-            >
-              <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">
-                <Download size={18} aria-hidden />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-base font-medium text-[var(--color-fg)]">{d.name}</div>
-                <div className="mt-1 text-xs text-neutral-500">{d.note}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* CTA */}
       <section className="py-16 md:py-24">
         <Container>
           <FadeIn className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-fg)] text-[var(--color-fg)] p-10 md:p-14 text-center">
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
-              Ready to start your {country.name} application?
+              {country.name}
             </h2>
-            <p className="mt-4 text-neutral-300 max-w-xl mx-auto">
-              Book a free consultation. We'll review your profile, surface the strongest universities for you, and map the next 90 days.
-            </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <ButtonLink href="/contact" size="lg">
-                Book Appointment
-                <ArrowRight size={16} aria-hidden />
+                {tNav("bookAppointment")}
+                <ArrowRight size={16} aria-hidden className="rtl:rotate-180" />
               </ButtonLink>
               <Link
                 href="/country"
                 className="text-sm font-medium text-neutral-300 hover:text-[var(--color-fg)]"
               >
-                Compare other countries â†’
+                {tNav("country")}
               </Link>
             </div>
           </FadeIn>

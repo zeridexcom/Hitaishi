@@ -1,26 +1,33 @@
 import type { Metadata } from "next";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { PageHero } from "@/components/ui/PageHero";
 import { ContactInfo } from "@/components/contact/ContactInfo";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactMap } from "@/components/contact/ContactMap";
-import { contactPage } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Contact | EduExpert",
-  description:
-    "Talk to EduExpert about your study-abroad or visa plan. Call, email, or send us a message — we respond within one business day.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("contactPage.hero");
+  const tNav = await getTranslations("nav");
+
   return (
     <>
       <PageHero
-        eyebrow={contactPage.hero.eyebrow}
-        title={contactPage.hero.title}
-        description={contactPage.hero.description}
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
         crumbs={[
           { label: "EduExpert", href: "/" },
-          { label: "Contact" },
+          { label: tNav("contact") },
         ]}
       />
       <ContactInfo />

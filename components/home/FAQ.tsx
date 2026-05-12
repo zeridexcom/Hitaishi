@@ -2,20 +2,21 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { Section } from "@/components/ui/Section";
-import { faq } from "@/lib/content";
 import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
 export function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
+  const t = useTranslations("faq");
+  const items = t.raw("items") as { q: string; a: string }[];
 
   return (
     <Section
       eyebrow="FAQ"
-      title={faq.heading}
-      subtitle="Quick answers to the things people ask us most. Anything we didn't cover? Get in touch."
+      title={t("heading")}
       alt
       particles
     >
@@ -27,7 +28,7 @@ export function FAQ() {
         className="mx-auto max-w-3xl"
       >
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-background-alt)] backdrop-blur-sm overflow-hidden">
-          {faq.items.map((item, i) => {
+          {items.map((item, i) => {
             const isOpen = open === i;
             return (
               <motion.div 

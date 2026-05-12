@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Phone, Mail, MapPin, ArrowUpRight } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { GlassCard } from "@/components/effects/GlassCard";
@@ -10,11 +11,11 @@ import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 const mapsHref = `https://www.google.com/maps?q=${business.coords.lat},${business.coords.lng}`;
 
 export function ContactInfo() {
+  const tNav = useTranslations("nav");
   return (
     <Section
-      eyebrow="Get in touch"
-      title="Three ways to reach us"
-      subtitle="Pick whichever's easiest. We respond fastest by phone during working hours."
+      eyebrow={tNav("contact")}
+      title={tNav("contact")}
       particles
     >
       <motion.div

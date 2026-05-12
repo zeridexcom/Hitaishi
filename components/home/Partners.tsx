@@ -1,12 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Section } from "@/components/ui/Section";
 import { Marquee } from "@/components/effects/Marquee";
 import { partners } from "@/lib/content";
 
 export function Partners() {
+  const t = useTranslations("partners");
   return (
-    <Section title={partners.heading}>
+    <Section title={t("heading")}>
       <Marquee speed={45} pauseOnHover fade>
         {Array.from({ length: partners.count }).map((_, i) => (
           <div

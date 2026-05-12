@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
+import { Link } from "@/i18n/navigation";
 import { ChevronRight } from "lucide-react";
 import { Container } from "./Container";
 import { AuroraBackground } from "@/components/effects/AuroraBackground";

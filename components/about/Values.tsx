@@ -1,20 +1,21 @@
 ﻿"use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { HeartHandshake, FileCheck2, Infinity as InfinityIcon } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { GlassCard } from "@/components/effects/GlassCard";
-import { aboutPage } from "@/lib/content";
 import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 
 const icons = [HeartHandshake, FileCheck2, InfinityIcon];
 
 export function Values() {
+  const t = useTranslations("aboutPage");
+  const values = t.raw("values") as { title: string; body: string }[];
   return (
     <Section
-      eyebrow="What we believe"
-      title="The principles behind every case we take"
-      subtitle="Three commitments that guide every conversation, every form, and every send-off."
+      eyebrow="Values"
+      title={t("mission.heading")}
       alt
       particles
     >
@@ -25,7 +26,7 @@ export function Values() {
         viewport={viewportOnce}
         className="grid gap-5 md:gap-6 md:grid-cols-3"
       >
-        {aboutPage.values.map((v, i) => {
+        {values.map((v, i) => {
           const Icon = icons[i];
           const glowColors = ["cyan", "accent", "cyan"] as const;
           

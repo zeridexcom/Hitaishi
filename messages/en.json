@@ -1,0 +1,281 @@
+{
+  "nav": {
+    "home": "Home",
+    "coaching": "Coaching",
+    "visa": "Visa",
+    "about": "About",
+    "country": "Country",
+    "blog": "Blog",
+    "contact": "Contact",
+    "bookAppointment": "Book Appointment",
+    "language": "Language"
+  },
+  "hero": {
+    "eyebrow": "Study Abroad Consulting",
+    "headlineWords": ["Expert", "Guidance", "for", "Your", "Study", "Abroad", "Journey"],
+    "bullets": [
+      "Personalized Consultation",
+      "Visa & Documentation Assistance",
+      "Cultural & Academic Support"
+    ],
+    "primaryCta": "Book Appointment",
+    "secondaryCta": "Read Story",
+    "stats": {
+      "countries": "Countries",
+      "visaTypes": "Visa Types",
+      "avgResponse": "Avg Response",
+      "responseValue": "<24h"
+    },
+    "trustedBy": "Trusted by",
+    "trustedCount": "500+ Students",
+    "successRate": "Success Rate"
+  },
+  "partners": {
+    "heading": "We're proud to work with our preferred partners"
+  },
+  "visaTypes": {
+    "heading": "Visa types and eligibility assessment",
+    "cards": {
+      "tourist": {
+        "title": "Tourist Visa",
+        "description": "Visit new places to discover with a Tourist Visa. We deliver your documents quickly and guide you through every step."
+      },
+      "commercial": {
+        "title": "Commercial Visa",
+        "description": "Developing your trade, setting up new sales channels. Your visa is ready when your next opportunity is."
+      },
+      "student": {
+        "title": "Student Visa",
+        "description": "Embarking on a journey of higher education in a foreign country opens doors to growth, culture, and new careers."
+      },
+      "residence": {
+        "title": "Residence Visa",
+        "description": "Expert guidance for a seamless immigration journey — from documents to settlement, we walk with you."
+      },
+      "working": {
+        "title": "Working Visa",
+        "description": "Get your visa now for new business and earning opportunities. We handle the paperwork; you focus on the role."
+      },
+      "diplomatic": {
+        "title": "Diplomatic Visa",
+        "description": "For government officials, diplomats, and representatives of international organisations on official assignment."
+      }
+    }
+  },
+  "howItWorks": {
+    "heading": "Dependable and Trustworthy Visa & Immigration Guidance",
+    "subtext": "Our team of seasoned professionals understands the complexities of immigration laws and visa procedures.",
+    "steps": [
+      { "title": "Choose your visa type", "body": "Determine the visa type that fits your travel purpose." },
+      { "title": "Contact our branches", "body": "Start your transaction by applying through our branches." },
+      { "title": "Submit your documents", "body": "Collect all the required documents for the process." },
+      { "title": "Passport delivery", "body": "Receive your visa, finalised after a successful application." }
+    ]
+  },
+  "stats": {
+    "heading": "Discovering Our Biggest Successes",
+    "subtitle": "A quick look at where we've helped people land — real numbers, no fluff.",
+    "labels": {
+      "countriesCovered": "Countries Covered",
+      "visaTypes": "Visa Types",
+      "successfulStudents": "Successful Students",
+      "expertConsultants": "Expert Consultants"
+    }
+  },
+  "countries": {
+    "heading": "Make Your Choice for the Preferred Nation",
+    "subtext": "Choosing the ideal destination for immigration is a pivotal decision that can shape the trajectory of your life.",
+    "tabs": ["Europe", "North America", "Asia", "Latin America", "Oceania", "Africa", "Antarctica"]
+  },
+  "team": {
+    "heading": "Our trusted immigration support team",
+    "memberLabel": "Team Member",
+    "roles": [
+      "Senior Visa Consultant",
+      "Education Advisor",
+      "Immigration Expert",
+      "Student Relations",
+      "Documentation Lead",
+      "Country Specialist",
+      "Coaching Head",
+      "Client Success"
+    ]
+  },
+  "testimonials": {
+    "heading": "Happy Clients Reflect on Their Journey with Us",
+    "subtitle": "Stories from students and families who've made the move with us.",
+    "items": [
+      {
+        "quote": "EduExpert made my dream of studying in Germany a reality. Their guidance through the visa process was exceptional and stress-free.",
+        "name": "Priya Sharma",
+        "destination": "Germany",
+        "program": "MS Computer Science"
+      },
+      {
+        "quote": "The team's expertise in Canadian immigration helped me secure my study permit in record time. Highly recommended for anyone planning to study abroad!",
+        "name": "Rahul Verma",
+        "destination": "Canada",
+        "program": "MBA"
+      }
+    ]
+  },
+  "faq": {
+    "heading": "Common questions answered",
+    "items": [
+      { "q": "What services do you offer?", "a": "We offer end-to-end study-abroad and visa consulting — country selection, university shortlisting, application support, visa documentation, and pre-departure orientation." },
+      { "q": "What is the consultation process like?", "a": "Each consultation starts with a free profile review to understand your goals, academic background, and budget. From there we map a personalised plan." },
+      { "q": "How much do your services cost?", "a": "Service fees vary by destination country and the level of support you need. We share transparent pricing during the first consultation." },
+      { "q": "How do I get started with your services?", "a": "Book a free appointment via our contact form or call us directly. One of our advisors will respond within one business day." },
+      { "q": "What is your success rate with visa applications?", "a": "We maintain a high approval rate by ensuring every application is complete and well-documented before submission." }
+    ]
+  },
+  "blog": {
+    "heading": "Cast Your Eyes Upon Our Newest Article",
+    "comingSoon": "Coming soon",
+    "readMore": "Read more",
+    "posts": [
+      { "title": "Elevating your visa application: navigating complexity", "category": "Visa" },
+      { "title": "Application Arsenal: Your Essential Toolkit for a Successful Visa Application", "category": "Guide" },
+      { "title": "Your Comprehensive Guide to Successfully Pursuing Study Abroad", "category": "Student" }
+    ]
+  },
+  "newsletter": {
+    "heading": "Subscribe to the free newsletter to receive the latest news & case studies!",
+    "placeholder": "you@email.com",
+    "cta": "Subscribe"
+  },
+  "visaPage": {
+    "hero": {
+      "eyebrow": "Solutions",
+      "title": "Visa",
+      "description": "Every visa pathway, mapped clearly. Whether you're studying, working, settling, or visiting — we walk through the documentation, eligibility, and timelines with you."
+    },
+    "whyUs": {
+      "heading": "Why choose EduExpert for your visa?",
+      "items": [
+        { "title": "Supportive environment", "body": "Honest guidance from advisors who've helped families through every stage of the process." },
+        { "title": "Student-friendly policies", "body": "We surface the cheapest, fastest, and safest pathway for your specific profile." },
+        { "title": "Quality at every step", "body": "From SOPs to financial statements — every document is reviewed before submission." },
+        { "title": "Opportunities for growth", "body": "Beyond the visa: scholarship guidance, pre-departure orientation, and post-arrival support." }
+      ]
+    }
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "About",
+      "title": "Committed to Your Visa Success",
+      "description": "We deliver budget-friendly visa solutions, removing financial barriers from your journey. Our goal is to provide quality services at reasonable rates."
+    },
+    "mission": {
+      "eyebrow": "Mission",
+      "heading": "Guiding Your Path with Our Immigration Mission",
+      "body": "We're here to simplify immigration complexities, guiding you to success. Our mission is to unite families, open opportunities, and make your journey enriching. Your dreams are our focus on the path to a brighter future."
+    },
+    "history": {
+      "eyebrow": "Our story",
+      "heading": "Our Immigration Service history",
+      "body": "Our history began with a vision to make the immigration process smoother and more accessible for individuals and families around the world. With a deep understanding of the challenges that accompany moving to a new country, we built a practice rooted in honest advice, careful documentation, and genuine care for every applicant."
+    },
+    "values": [
+      { "title": "Honesty first", "body": "If a country isn't right for your profile, we'll say so — even if it loses us the case." },
+      { "title": "Documentation rigour", "body": "Every form, every translation, every cover letter — reviewed twice before it leaves our desk." },
+      { "title": "Lifelong relationship", "body": "From first call through arrival and beyond. We're still around when your renewal comes due." }
+    ],
+    "teamSubtitle": "Advisors, counsellors, and case managers — the people who actually move your application forward."
+  },
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Contact",
+      "title": "Let's plan your move",
+      "description": "Tell us about your goal — study, work, settle, or visit — and we'll come back within one business day with a clear next step."
+    },
+    "form": {
+      "heading": "Send a message",
+      "subtext": "Fill in the form and our team will reach out shortly.",
+      "fields": {
+        "name": "Full name",
+        "email": "Email address",
+        "phone": "Phone number",
+        "subject": "What can we help with?",
+        "message": "Tell us a little about your goal"
+      },
+      "cta": "Send message"
+    }
+  },
+  "coachingPage": {
+    "hero": {
+      "eyebrow": "Coaching",
+      "title": "Coaching for the tests that open the door",
+      "description": "IELTS, TOEFL, PTE, GRE, GMAT — the right score is often the difference between a shortlist and an offer. Our trainers focus on the skills that actually move scores."
+    },
+    "tests": [
+      { "title": "IELTS", "description": "Academic & General Training. Speaking, Listening, Reading, Writing.", "band": "Target band 7.0+" },
+      { "title": "TOEFL", "description": "iBT format. Integrated speaking & writing practice with mock tests.", "band": "Target score 100+" },
+      { "title": "PTE Academic", "description": "Computer-based scoring. Pace and pronunciation drills tuned to PTE.", "band": "Target score 65+" },
+      { "title": "GRE", "description": "Quant, verbal, AWA. Timed sections with adaptive practice.", "band": "Target score 320+" },
+      { "title": "GMAT", "description": "Focus Edition. Quant, verbal, data insights — for MBA aspirants.", "band": "Target score 700+" }
+    ],
+    "features": [
+      { "title": "Certified trainers", "body": "Trainers with verified test scores in the band they coach." },
+      { "title": "Doubt-solving sessions", "body": "Daily one-on-one slots — never wait a week to clear a doubt." },
+      { "title": "Flexible batches", "body": "Weekday, weekend, online, and one-on-one tracks." },
+      { "title": "Free study materials", "body": "Section-wise workbooks and a graded mock test bank." }
+    ],
+    "batches": [
+      { "name": "Regular weekday", "schedule": "Mon – Fri · 90 mins/day", "duration": "6 weeks" },
+      { "name": "Weekend track", "schedule": "Sat & Sun · 3 hours/day", "duration": "8 weeks" },
+      { "name": "Online live", "schedule": "Daily · 90 mins · Zoom", "duration": "6 weeks" },
+      { "name": "One-on-one", "schedule": "Flexible · scheduled with trainer", "duration": "Custom" }
+    ]
+  },
+  "blogIndex": {
+    "hero": {
+      "eyebrow": "Insights",
+      "title": "Blog",
+      "description": "Practical reads on visas, applications, and life abroad — written for students and families weighing the move."
+    },
+    "categoriesHeading": "Categories",
+    "tagsHeading": "Tags",
+    "categories": ["Blog", "Business visa", "Consulting", "Immigration", "Student", "Travel", "Visa quotas"],
+    "tags": ["Abroad", "Family", "Government", "Immigration", "Student", "Travel", "Traveling", "Visa", "Work Visa"]
+  },
+  "countryIndex": {
+    "hero": {
+      "eyebrow": "Destinations",
+      "title": "Country",
+      "description": "Choosing the ideal destination is a pivotal decision. Browse the countries we cover — every page lists eligible institutes, why students pick that country, and what to expect."
+    }
+  },
+  "footer": {
+    "exploreHeading": "Explore",
+    "servicesHeading": "Services",
+    "contactHeading": "Contact",
+    "branchesHeading": "Branches",
+    "intro": "Expert guidance for a seamless study abroad journey. Your dreams are our mission.",
+    "explore": [
+      { "label": "Home", "href": "/" },
+      { "label": "About Us", "href": "/about" },
+      { "label": "Blog", "href": "/blog" },
+      { "label": "Contact", "href": "/contact" },
+      { "label": "Testimonials", "href": "/#testimonials" }
+    ],
+    "services": [
+      { "label": "Student Visa", "href": "/visa" },
+      { "label": "Tourist Visa", "href": "/visa" },
+      { "label": "Working Visa", "href": "/visa" },
+      { "label": "Coaching", "href": "/coaching" },
+      { "label": "Book Appointment", "href": "/contact" }
+    ]
+  },
+  "intro": {
+    "tagline": "Study Beyond Borders"
+  },
+  "whatsapp": {
+    "label": "Chat on WhatsApp",
+    "message": "Hi EduExpert, I'd like to know more about your services."
+  },
+  "common": {
+    "readMore": "Read more",
+    "learnMore": "Learn more"
+  }
+}

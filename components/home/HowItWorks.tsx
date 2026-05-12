@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Compass, Building2, FileText, BadgeCheck } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { GlassCard } from "@/components/effects/GlassCard";
-import { howItWorks } from "@/lib/content";
 
 const icons = [Compass, Building2, FileText, BadgeCheck];
 
@@ -30,12 +30,14 @@ const badgeVariant = {
 export function HowItWorks() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-120px" });
+  const t = useTranslations("howItWorks");
+  const steps = t.raw("steps") as { title: string; body: string }[];
 
   return (
     <Section
       eyebrow="Process"
-      title={howItWorks.heading}
-      subtitle={howItWorks.subtext}
+      title={t("heading")}
+      subtitle={t("subtext")}
     >
       <div ref={ref} className="relative">
         {/* Animated SVG connector line — only shown on lg+ where steps are horizontal */}
@@ -70,7 +72,7 @@ export function HowItWorks() {
         </svg>
 
         <div className="relative grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {howItWorks.steps.map((step, i) => {
+          {steps.map((step, i) => {
             const Icon = icons[i];
             return (
               <motion.div

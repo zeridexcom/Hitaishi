@@ -1,19 +1,21 @@
 ﻿"use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Section } from "@/components/ui/Section";
 import { GlassCard } from "@/components/effects/GlassCard";
 import { countryDetails } from "@/lib/countries";
 import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 
 export function CountryGrid() {
+  const t = useTranslations("countries");
   return (
     <Section
       eyebrow="Destinations"
-      title="Make Your Choice for the Preferred Nation"
-      subtitle="Twelve countries, twelve sets of trade-offs. Tap any to see eligible universities, programmes, and what makes that country worth the move."
+      title={t("heading")}
+      subtitle={t("subtext")}
       particles
     >
       <motion.div
@@ -54,11 +56,11 @@ export function CountryGrid() {
                 
                 <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
                   <span className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-cyan)] group-hover:text-[var(--color-fg)] transition-colors">
-                    Explore {c.name}
+                    {c.name}
                     <ArrowRight
                       size={14}
                       aria-hidden
-                      className="transition-transform duration-300 group-hover:translate-x-1"
+                      className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
                     />
                   </span>
                 </div>

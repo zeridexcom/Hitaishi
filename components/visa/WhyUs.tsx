@@ -1,20 +1,21 @@
 ﻿"use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Sparkles, Shield, Users, Award } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { GlassCard } from "@/components/effects/GlassCard";
-import { visaPage } from "@/lib/content";
 import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 
 const icons = [Sparkles, Shield, Users, Award];
 
 export function WhyUs() {
+  const t = useTranslations("visaPage.whyUs");
+  const items = t.raw("items") as { title: string; body: string }[];
   return (
     <Section
       eyebrow="Why us"
-      title={visaPage.whyUs.heading}
-      subtitle="The difference between a visa application that passes the first time and one that doesn't is rarely the documents â€” it's the discipline behind them."
+      title={t("heading")}
       alt
       particles
     >
@@ -25,7 +26,7 @@ export function WhyUs() {
         viewport={viewportOnce}
         className="grid gap-5 md:gap-6 md:grid-cols-2 lg:grid-cols-4"
       >
-        {visaPage.whyUs.items.map((item, i) => {
+        {items.map((item, i) => {
           const Icon = icons[i % icons.length];
           const glowColors = ["cyan", "accent", "cyan", "accent"] as const;
           

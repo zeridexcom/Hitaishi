@@ -2,25 +2,41 @@
 
 import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Send, CheckCircle2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Send } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import { GlassCard } from "@/components/effects/GlassCard";
-import { contactPage } from "@/lib/content";
 import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 
-type Status = "idle" | "submitting" | "info";
+type Status = "idle" | "submitting" | "success" | "error";
 
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const t = useTranslations("contactPage.form");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
     setStatus("submitting");
-    setTimeout(() => setStatus("info"), 600);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        body: new FormData(form),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error || "Submission failed. Please try again.");
+      }
+      form.reset();
+      setStatus("success");
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(err instanceof Error ? err.message : "Submission failed.");
+    }
   }
-
-  const f = contactPage.form.fields;
 
   return (
     <section className="py-20 md:py-28 lg:py-36 bg-[var(--color-background-alt)]">
@@ -33,36 +49,12 @@ export function ContactForm() {
           className="grid gap-12 lg:gap-16 lg:grid-cols-12 lg:items-start"
         >
           <motion.div variants={fadeUp} className="lg:col-span-5">
-            <div className="mb-5 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.25em] text-[var(--color-cyan)]">
-              <span className="w-8 h-px bg-gradient-to-r from-transparent to-[var(--color-cyan)]" />
-              Send a message
-            </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--color-fg)]">
-              {contactPage.form.heading}
+              {t("heading")}
             </h2>
             <p className="mt-5 text-base md:text-lg text-[var(--color-fg-muted)] leading-relaxed">
-              {contactPage.form.subtext}
+              {t("subtext")}
             </p>
-            <ul className="mt-8 flex flex-col gap-4 text-sm text-[var(--color-fg-muted)]">
-              <li className="flex items-start gap-3">
-                <span className="mt-0.5 inline-flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-cyan)]">
-                  <CheckCircle2 size={12} aria-hidden className="text-white" />
-                </span>
-                Free profile review on first call
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-0.5 inline-flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-cyan)]">
-                  <CheckCircle2 size={12} aria-hidden className="text-white" />
-                </span>
-                Response within one business day
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-0.5 inline-flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-cyan)]">
-                  <CheckCircle2 size={12} aria-hidden className="text-white" />
-                </span>
-                No spam, no obligations
-              </li>
-            </ul>
           </motion.div>
 
           <motion.div variants={fadeUp} className="lg:col-span-7">
@@ -73,26 +65,31 @@ export function ContactForm() {
                 aria-label="Contact form"
               >
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field id="name" label={f.name} type="text" required autoComplete="name" />
-                  <Field id="email" label={f.email} type="email" required autoComplete="email" />
+                  <Field id="name" label={t("fields.name")} type="text" required autoComplete="name" />
+                  <Field id="email" label={t("fields.email")} type="email" required autoComplete="email" />
                 </div>
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field id="phone" label={f.phone} type="tel" autoComplete="tel" />
-                  <Field id="subject" label={f.subject} type="text" />
+                  <Field id="phone" label={t("fields.phone")} type="tel" autoComplete="tel" />
+                  <Field id="subject" label={t("fields.subject")} type="text" />
                 </div>
-                <FieldTextarea id="message" label={f.message} required />
+                <FieldTextarea id="message" label={t("fields.message")} required />
                 <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                   <MagneticButton
                     type="submit"
                     size="lg"
-                    className="sm:w-auto"
+                    className={`sm:w-auto ${status === "submitting" ? "pointer-events-none opacity-70" : ""}`}
                   >
-                    {status === "submitting" ? "Sending..." : contactPage.form.cta}
-                    {status !== "submitting" && <Send size={16} aria-hidden />}
+                    {status === "submitting" ? "Sending…" : t("cta")}
+                    <Send size={16} aria-hidden className="rtl:rotate-180" />
                   </MagneticButton>
-                  {status === "info" && (
-                    <p className="text-xs text-[var(--color-cyan)]" role="status">
-                      Message received! We&apos;ll get back to you within 24 hours.
+                  {status === "success" && (
+                    <p className="text-sm text-[var(--color-cyan)]" role="status">
+                      ✓ Thanks — we&apos;ll be in touch.
+                    </p>
+                  )}
+                  {status === "error" && (
+                    <p className="text-sm text-red-600" role="alert">
+                      {errorMsg}
                     </p>
                   )}
                 </div>

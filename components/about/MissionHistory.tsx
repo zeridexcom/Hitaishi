@@ -1,20 +1,21 @@
 ﻿"use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { GlassCard } from "@/components/effects/GlassCard";
-import { aboutPage } from "@/lib/content";
 import { fadeUp, stagger, viewportOnce } from "@/lib/motion";
 
 const sectionImages = [
-  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=750&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=750&fit=crop&q=80",
+  "/images/about_mission_history.png",
+  "/images/about_mission_history.png",
 ];
 
 export function MissionHistory() {
+  const t = useTranslations("aboutPage");
   const blocks = [
-    { ...aboutPage.mission, label: "Mission photo" },
-    { ...aboutPage.history, label: "History photo" },
+    { eyebrow: t("mission.eyebrow"), heading: t("mission.heading"), body: t("mission.body"), label: "Mission" },
+    { eyebrow: t("history.eyebrow"), heading: t("history.heading"), body: t("history.body"), label: "History" },
   ];
 
   return (

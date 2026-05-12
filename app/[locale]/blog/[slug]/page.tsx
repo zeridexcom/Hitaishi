@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ArrowLeft, ArrowRight, Calendar, Clock } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
-import { PlaceholderImage } from "@/components/ui/PlaceholderImage";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { Newsletter } from "@/components/home/Newsletter";
 import { posts, getPost } from "@/lib/posts";
@@ -20,15 +20,19 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return { title: "Post not found | EduExpert" };
-  return { title: `${post.title} | EduExpert Blog`, description: post.excerpt };
+  return { title: `${post.title} | EduExpert Blog` };
 }
 
 export default async function BlogPostPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("blog");
+  const tNav = await getTranslations("nav");
+
   const post = getPost(slug);
   if (!post) notFound();
 
@@ -47,14 +51,14 @@ export default async function BlogPostPage({
                 href="/blog"
                 className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-neutral-500 hover:text-[var(--color-fg)] mb-8"
               >
-                <ArrowLeft size={12} aria-hidden /> Back to blog
+                <ArrowLeft size={12} aria-hidden className="rtl:rotate-180" /> {tNav("blog")}
               </Link>
               <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-widest text-neutral-500">
                 <span className="rounded-full bg-[var(--color-accent-soft)] px-2.5 py-1 text-[10px] text-[var(--color-accent)] font-semibold">
                   {post.category}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Calendar size={12} aria-hidden /> {post.date}
+                  <Calendar size={12} aria-hidden /> {t("comingSoon")}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Clock size={12} aria-hidden /> {post.readingTime}
@@ -64,7 +68,7 @@ export default async function BlogPostPage({
                 {post.title}
               </h1>
               <p className="mt-6 text-base md:text-lg text-neutral-600 leading-relaxed">
-                {post.excerpt}
+                {t("comingSoon")}
               </p>
             </FadeIn>
           </Container>
@@ -74,11 +78,10 @@ export default async function BlogPostPage({
         <section className="-mt-8 md:-mt-12 relative z-10">
           <Container>
             <FadeIn>
-              <PlaceholderImage
-                aspect="aspect-[16/9]"
-                label="Cover image"
-                ariaLabel={`Cover image for ${post.title}`}
-                className="shadow-[var(--shadow-lift)]"
+              <img
+                src="/images/blog_cover.png"
+                alt={`Cover image for ${post.title}`}
+                className="aspect-[16/9] w-full rounded-2xl object-cover shadow-[var(--shadow-lift)]"
               />
             </FadeIn>
           </Container>
@@ -108,7 +111,7 @@ export default async function BlogPostPage({
                   className="group rounded-2xl border border-[var(--color-border)] bg-white p-6 transition-all duration-200 hover:border-[var(--color-fg)] hover:shadow-[var(--shadow-soft)]"
                 >
                   <div className="text-xs uppercase tracking-widest text-neutral-500 inline-flex items-center gap-1.5">
-                    <ArrowLeft size={12} aria-hidden /> Previous
+                    <ArrowLeft size={12} aria-hidden className="rtl:rotate-180" />
                   </div>
                   <div className="mt-3 text-base font-medium text-[var(--color-fg)] leading-snug group-hover:text-[var(--color-accent)] transition-colors">
                     {prev.title}
@@ -123,7 +126,7 @@ export default async function BlogPostPage({
                   className="group rounded-2xl border border-[var(--color-border)] bg-white p-6 md:text-right transition-all duration-200 hover:border-[var(--color-fg)] hover:shadow-[var(--shadow-soft)]"
                 >
                   <div className="text-xs uppercase tracking-widest text-neutral-500 inline-flex items-center gap-1.5 md:flex-row-reverse">
-                    Next <ArrowRight size={12} aria-hidden />
+                    <ArrowRight size={12} aria-hidden className="rtl:rotate-180" />
                   </div>
                   <div className="mt-3 text-base font-medium text-[var(--color-fg)] leading-snug group-hover:text-[var(--color-accent)] transition-colors">
                     {next.title}
