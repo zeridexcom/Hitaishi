@@ -1,3 +1,112 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --ink: #0a0a0a;
+  --ink-soft: #6b6b6b;
+  --ink-faint: #a3a3a3;
+  --paper: #ffffff;
+  --paper-soft: #fafafa;
+  --rule: #e5e5e5;
+  --rule-strong: #d4d4d4;
+  --signal: #d4a256;
+  --signal-soft: #f5e8d0;
+
+  --font-serif: "Bodoni Moda", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.serif {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+.italic-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+@layer components {
+  .meta {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-soft);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+  }
+  .rule {
+    height: 1px;
+    background: var(--rule);
+  }
+  .rule-strong {
+    height: 2px;
+    background: var(--ink);
+  }
+  .chip-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.65rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+  .chip-cta:hover {
+    background: var(--signal);
+    color: var(--ink);
+  }
+  .chip-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 0.6rem 1.05rem;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .signal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--signal);
+    display: inline-block;
+  }
+  .avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* student portal stays light by design — phones at 11pm benefit from a calm
+       cream-on-ink contrast set in app/(student)/layout.tsx, not here. */
+  }
+}
