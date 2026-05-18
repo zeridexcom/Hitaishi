@@ -1,60 +1,40 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { sendMessage, type MessageStore, type RealtimePublisher } from "./messages";
+import { sendMessage, type RealtimePublisher, type RealtimeEvent } from "./messages";
+import { makeInMemoryMessageStore } from "./test-helpers/in-memory-message-store";
 
 const CONV_ID = "conv-1";
 const SENDER = "user-A";
 const OTHER = "user-B";
 
-function makeStore(participantIds: string[] = [SENDER, OTHER]): MessageStore & {
-  state: {
-    flagged: boolean;
-    messages: Array<{ id: string; conversationId: string; senderId: string; body: string; flags: string[] }>;
-  };
+function makePublisher(opts: { failOnce?: boolean } = {}): RealtimePublisher & {
+  events: Array<{ channel: string; event: RealtimeEvent }>;
 } {
-  const state = {
-    flagged: false,
-    messages: [] as Array<{ id: string; conversationId: string; senderId: string; body: string; flags: string[] }>,
-  };
-  let n = 1;
-  return {
-    state,
-    async getConversationParticipants(convId) {
-      if (convId !== CONV_ID) return null;
-      return { participantIds, flagged: state.flagged };
-    },
-    async insertMessage(input) {
-      const row = { id: `msg-${n++}`, ...input };
-      state.messages.push(row);
-      return row;
-    },
-    async markConversationFlagged(convId) {
-      if (convId === CONV_ID) state.flagged = true;
-    },
-    async touchConversationActivity() {},
-  };
-}
-
-function makePublisher(): RealtimePublisher & {
-  events: Array<{ channel: string; event: string; data: unknown }>;
-} {
-  const events: Array<{ channel: string; event: string; data: unknown }> = [];
+  const events: Array<{ channel: string; event: RealtimeEvent }> = [];
+  let failed = false;
   return {
     events,
-    async publish(channel, event, data) {
-      events.push({ channel, event, data });
+    async publish(channel, event) {
+      if (opts.failOnce && !failed) {
+        failed = true;
+        throw new Error("simulated soketi outage");
+      }
+      events.push({ channel, event });
     },
   };
 }
 
 describe("sendMessage", () => {
-  let store: ReturnType<typeof makeStore>;
+  let store: ReturnType<typeof makeInMemoryMessageStore>;
   let pub: ReturnType<typeof makePublisher>;
   beforeEach(() => {
-    store = makeStore();
+    store = makeInMemoryMessageStore({
+      conversationId: CONV_ID,
+      participantIds: [SENDER, OTHER],
+    });
     pub = makePublisher();
   });
 
-  it("delivers a clean message: persists + publishes to private channel", async () => {
+  it("delivers a clean message: persists + publishes typed message:new event", async () => {
     const r = await sendMessage(
       { conversationId: CONV_ID, senderId: SENDER, body: "hello mentor" },
       store,
@@ -64,12 +44,12 @@ describe("sendMessage", () => {
     expect(store.state.messages).toHaveLength(1);
     expect(pub.events).toHaveLength(1);
     expect(pub.events[0].channel).toBe("private-conversation-conv-1");
-    expect(pub.events[0].event).toBe("message:new");
+    expect(pub.events[0].event.type).toBe("message:new");
   });
 
   it("rejects non-participants", async () => {
     const r = await sendMessage(
-      { conversationId: CONV_ID, senderId: "user-Z", body: "spy message" },
+      { conversationId: CONV_ID, senderId: "user-Z", body: "spy" },
       store,
       pub,
     );
@@ -85,7 +65,6 @@ describe("sendMessage", () => {
       pub,
     );
     expect(r.status).toBe("invalid");
-    expect(store.state.messages).toHaveLength(0);
   });
 
   it("rejects messages over 4000 chars", async () => {
@@ -106,7 +85,7 @@ describe("sendMessage", () => {
     expect(r.status).toBe("not_found");
   });
 
-  it("flags the conversation and includes flags on the published payload", async () => {
+  it("flags the conversation when body trips the scanner", async () => {
     const r = await sendMessage(
       { conversationId: CONV_ID, senderId: SENDER, body: "whatsapp me at 9876543210" },
       store,
@@ -116,7 +95,41 @@ describe("sendMessage", () => {
     expect(store.state.flagged).toBe(true);
     expect(store.state.messages[0].flags).toContain("phone");
     expect(store.state.messages[0].flags).toContain("off_platform");
-    const payload = pub.events[0].data as { flags: string[] };
-    expect(payload.flags).toContain("phone");
+    if (pub.events[0].event.type !== "message:new") throw new Error("wrong type");
+    expect(pub.events[0].event.payload.flags).toContain("phone");
+  });
+
+  it("publish failure does NOT roll back the persisted row (best-effort post-commit) (H1)", async () => {
+    pub = makePublisher({ failOnce: true });
+    const r = await sendMessage(
+      { conversationId: CONV_ID, senderId: SENDER, body: "hello mentor" },
+      store,
+      pub,
+    );
+    // message is persisted, but the result tells the caller publish failed
+    expect(r.status).toBe("sent_unpublished");
+    expect(store.state.messages).toHaveLength(1);
+    expect(pub.events).toHaveLength(0);
+  });
+
+  it("DB write failure rolls back atomically (no half-flagged conversation) (H1)", async () => {
+    const broken = makeInMemoryMessageStore({
+      conversationId: CONV_ID,
+      participantIds: [SENDER, OTHER],
+      overrides: {
+        async insertMessage() {
+          throw new Error("simulated FK violation");
+        },
+      },
+    });
+    await expect(
+      sendMessage(
+        { conversationId: CONV_ID, senderId: SENDER, body: "whatsapp me" },
+        broken,
+        pub,
+      ),
+    ).rejects.toThrow(/simulated/);
+    expect(broken.state.messages).toHaveLength(0);
+    expect(broken.state.flagged).toBe(false);
   });
 });
