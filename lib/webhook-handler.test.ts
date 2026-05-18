@@ -103,6 +103,7 @@ describe("handleRazorpayWebhook", () => {
     const r = await handleRazorpayWebhook(body, sign(body), SECRET, store);
     expect(r.status).toBe(200);
     expect(r.body.success).toBe(true);
+    if (!r.body.success) throw new Error(r.body.error);
     expect(r.body.data?.status).toBe("provisioned");
   });
 
@@ -111,6 +112,7 @@ describe("handleRazorpayWebhook", () => {
     await handleRazorpayWebhook(body, sign(body), SECRET, store);
     const r = await handleRazorpayWebhook(body, sign(body), SECRET, store);
     expect(r.status).toBe(200);
+    if (!r.body.success) throw new Error(r.body.error);
     expect(r.body.data?.status).toBe("duplicate");
   });
 
@@ -119,6 +121,7 @@ describe("handleRazorpayWebhook", () => {
     const body = JSON.stringify(ignored);
     const r = await handleRazorpayWebhook(body, sign(body), SECRET, store);
     expect(r.status).toBe(200);
+    if (!r.body.success) throw new Error(r.body.error);
     expect(r.body.data?.status).toBe("ignored");
   });
 });

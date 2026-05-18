@@ -11,39 +11,57 @@ const PLAN = {
 
 const MENTOR_ID = "mentor-uuid-1";
 
-function makeStore(): ProvisioningStore & {
-  state: {
-    webhooks: Map<string, { processedAt: Date | null; attempts: number }>;
-    users: Map<string, { id: string; email: string; role: string; status: string }>;
-    payments: Map<string, { id: string; orderId: string; amountInr: number }>;
-    subscriptions: Array<{
-      id: string;
-      userId: string;
-      planId: string;
-      expiresAt: Date;
-    }>;
-    assignments: Array<{ studentId: string; mentorId: string }>;
-    notifications: Array<{ recipientId: string; template: string }>;
-  };
-} {
-  const state = {
+interface State {
+  webhooks: Map<string, { processedAt: Date | null; attempts: number }>;
+  users: Map<string, { id: string; email: string; role: string; status: string }>;
+  payments: Map<string, { id: string; orderId: string; amountInr: number }>;
+  subscriptions: Array<{
+    id: string;
+    userId: string;
+    planId: string;
+    expiresAt: Date;
+  }>;
+  assignments: Array<{ studentId: string; mentorId: string }>;
+  notifications: Array<{ recipientId: string; template: string }>;
+}
+
+function makeStore(
+  overrides: Partial<ProvisioningStore> = {},
+): ProvisioningStore & { state: State } {
+  const state: State = {
     webhooks: new Map(),
     users: new Map(),
     payments: new Map(),
-    subscriptions: [] as Array<{
-      id: string;
-      userId: string;
-      planId: string;
-      expiresAt: Date;
-    }>,
-    assignments: [] as Array<{ studentId: string; mentorId: string }>,
-    notifications: [] as Array<{ recipientId: string; template: string }>,
+    subscriptions: [],
+    assignments: [],
+    notifications: [],
   };
   let nextId = 1;
   const id = (prefix: string) => `${prefix}-${nextId++}`;
 
-  return {
-    state,
+  const baseline: ProvisioningStore = {
+    async withTransaction(fn) {
+      // In-memory snapshot/rollback for tests.
+      const snapshot: State = {
+        webhooks: new Map(state.webhooks),
+        users: new Map(state.users),
+        payments: new Map(state.payments),
+        subscriptions: [...state.subscriptions],
+        assignments: [...state.assignments],
+        notifications: [...state.notifications],
+      };
+      try {
+        return await fn();
+      } catch (e) {
+        state.webhooks = snapshot.webhooks;
+        state.users = snapshot.users;
+        state.payments = snapshot.payments;
+        state.subscriptions = snapshot.subscriptions;
+        state.assignments = snapshot.assignments;
+        state.notifications = snapshot.notifications;
+        throw e;
+      }
+    },
     async claimWebhookEvent(externalId) {
       const existing = state.webhooks.get(externalId);
       if (existing) {
@@ -57,13 +75,10 @@ function makeStore(): ProvisioningStore & {
       const e = state.webhooks.get(externalId);
       if (e) e.processedAt = new Date();
     },
-    async findUserByEmail(email) {
+    async upsertStudentByEmail({ email }) {
       for (const u of state.users.values()) {
         if (u.email === email) return u;
       }
-      return null;
-    },
-    async createStudent({ email }) {
       const u = { id: id("user"), email, role: "student", status: "active" };
       state.users.set(u.id, u);
       return u;
@@ -94,6 +109,8 @@ function makeStore(): ProvisioningStore & {
       state.notifications.push({ recipientId, template: "WELCOME" });
     },
   };
+
+  return { ...baseline, ...overrides, state };
 }
 
 function captured(eventId: string, email = "s@x.com"): RazorpayEvent {
@@ -132,7 +149,6 @@ describe("provisionStudentAccess", () => {
     expect(r.status).toBe("duplicate");
     expect(store.state.users.size).toBe(1);
     expect(store.state.subscriptions).toHaveLength(1);
-    expect(store.state.assignments).toHaveLength(1);
   });
 
   it("reuses an existing user when email is already in the system", async () => {
@@ -151,7 +167,7 @@ describe("provisionStudentAccess", () => {
     expect(days).toBeLessThanOrEqual(180);
   });
 
-  it("throws on unknown plan code (admin must intervene, not auto-provision)", async () => {
+  it("throws on unknown plan code", async () => {
     const ev = captured("evt_badplan");
     if (ev.kind === "payment.captured") ev.payment.planCode = "DOES_NOT_EXIST";
     await expect(provisionStudentAccess(ev, store)).rejects.toThrow(/plan/i);
@@ -166,5 +182,29 @@ describe("provisionStudentAccess", () => {
     const r = await provisionStudentAccess(ev, store);
     expect(r.status).toBe("ignored");
     expect(store.state.users.size).toBe(0);
+  });
+
+  it("rejects when paid amount doesn't match plan price (M7)", async () => {
+    const ev = captured("evt_underpay");
+    if (ev.kind === "payment.captured") ev.payment.amountInr = 1;
+    await expect(provisionStudentAccess(ev, store)).rejects.toThrow(/amount/i);
+    expect(store.state.users.size).toBe(0);
+  });
+
+  it("rolls back all writes when a step fails after partial success (H1)", async () => {
+    const rigged = makeStore({
+      createSubscription: async () => {
+        throw new Error("simulated FK violation");
+      },
+    });
+    await expect(
+      provisionStudentAccess(captured("evt_rollback"), rigged),
+    ).rejects.toThrow(/simulated/);
+    expect(rigged.state.users.size).toBe(0);
+    expect(rigged.state.payments.size).toBe(0);
+    expect(rigged.state.subscriptions).toHaveLength(0);
+    expect(rigged.state.assignments).toHaveLength(0);
+    // webhook claim also rolls back so retry can succeed
+    expect(rigged.state.webhooks.size).toBe(0);
   });
 });

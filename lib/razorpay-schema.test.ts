@@ -98,6 +98,20 @@ describe("parseRazorpayEvent", () => {
     expect(() => parseRazorpayEvent(bad)).toThrow();
   });
 
+  it("rejects non-INR currency (defense-in-depth)", () => {
+    const bad = JSON.parse(JSON.stringify(paymentCaptured));
+    bad.payload.payment.entity.currency = "USD";
+    expect(() => parseRazorpayEvent(bad)).toThrow();
+  });
+
+  it("lowercases and trims the email", () => {
+    const mixed = JSON.parse(JSON.stringify(paymentCaptured));
+    mixed.payload.payment.entity.email = "  STUDENT@Example.COM  ";
+    const ev = parseRazorpayEvent(mixed);
+    if (ev.kind !== "payment.captured") throw new Error("wrong kind");
+    expect(ev.payment.email).toBe("student@example.com");
+  });
+
   it("requires the top-level event id (used for idempotency)", () => {
     const bad = JSON.parse(JSON.stringify(paymentCaptured));
     delete bad.id;
