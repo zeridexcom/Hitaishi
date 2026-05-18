@@ -10,6 +10,7 @@ import {
   bigint,
   pgEnum,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./identity";
 
@@ -40,30 +41,41 @@ const ts = () => ({
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const mentorAvailability = pgTable("mentor_availability", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  mentorId: uuid("mentor_id").references(() => users.id).notNull(),
-  dayOfWeek: smallint("day_of_week").notNull(),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-  slotMinutes: smallint("slot_minutes").notNull().default(30),
-  setBy: availabilitySetByEnum("set_by").notNull().default("admin"),
-  ...ts(),
-});
+export const mentorAvailability = pgTable(
+  "mentor_availability",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    mentorId: uuid("mentor_id").references(() => users.id).notNull(),
+    dayOfWeek: smallint("day_of_week").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+    slotMinutes: smallint("slot_minutes").notNull().default(30),
+    setBy: availabilitySetByEnum("set_by").notNull().default("admin"),
+    ...ts(),
+  },
+  (t) => ({ mentorIdx: index("mentor_availability_mentor_idx").on(t.mentorId) }),
+);
 
-export const sessions = pgTable("sessions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  hostId: uuid("host_id").references(() => users.id).notNull(),
-  type: sessionTypeEnum("type").notNull(),
-  title: varchar("title", { length: 200 }).notNull(),
-  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
-  durationMinutes: smallint("duration_minutes").notNull().default(60),
-  hmsRoomId: varchar("hms_room_id", { length: 60 }),
-  status: sessionStatusEnum("status").notNull().default("scheduled"),
-  startedAt: timestamp("started_at", { withTimezone: true }),
-  endedAt: timestamp("ended_at", { withTimezone: true }),
-  ...ts(),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hostId: uuid("host_id").references(() => users.id).notNull(),
+    type: sessionTypeEnum("type").notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+    durationMinutes: smallint("duration_minutes").notNull().default(60),
+    hmsRoomId: varchar("hms_room_id", { length: 60 }),
+    status: sessionStatusEnum("status").notNull().default("scheduled"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    ...ts(),
+  },
+  (t) => ({
+    hostIdx: index("sessions_host_idx").on(t.hostId),
+    scheduledIdx: index("sessions_scheduled_at_idx").on(t.scheduledAt),
+  }),
+);
 
 export const sessionParticipants = pgTable(
   "session_participants",

@@ -9,6 +9,7 @@ import {
   date,
   pgEnum,
   text,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./identity";
 
@@ -59,28 +60,39 @@ export const plans = pgTable("plans", {
   ...ts(),
 });
 
-export const payments = pgTable("payments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id),
-  razorpayOrderId: varchar("razorpay_order_id", { length: 40 }).unique().notNull(),
-  razorpayPaymentId: varchar("razorpay_payment_id", { length: 40 }),
-  amountInr: integer("amount_inr").notNull(),
-  status: paymentStatusEnum("status").notNull().default("created"),
-  method: paymentMethodEnum("method"),
-  webhookPayload: jsonb("webhook_payload"),
-  ...ts(),
-});
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id),
+    razorpayOrderId: varchar("razorpay_order_id", { length: 40 }).unique().notNull(),
+    razorpayPaymentId: varchar("razorpay_payment_id", { length: 40 }),
+    amountInr: integer("amount_inr").notNull(),
+    status: paymentStatusEnum("status").notNull().default("created"),
+    method: paymentMethodEnum("method"),
+    webhookPayload: jsonb("webhook_payload"),
+    ...ts(),
+  },
+  (t) => ({
+    userIdx: index("payments_user_idx").on(t.userId),
+    statusIdx: index("payments_status_idx").on(t.status),
+  }),
+);
 
-export const subscriptions = pgTable("subscriptions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  planId: uuid("plan_id").references(() => plans.id).notNull(),
-  paymentId: uuid("payment_id").references(() => payments.id),
-  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  status: subscriptionStatusEnum("status").notNull().default("active"),
-  ...ts(),
-});
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    planId: uuid("plan_id").references(() => plans.id).notNull(),
+    paymentId: uuid("payment_id").references(() => payments.id),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    status: subscriptionStatusEnum("status").notNull().default("active"),
+    ...ts(),
+  },
+  (t) => ({ expiresIdx: index("subscriptions_expires_at_idx").on(t.expiresAt) }),
+);
 
 export const refunds = pgTable("refunds", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -94,16 +106,23 @@ export const refunds = pgTable("refunds", {
   ...ts(),
 });
 
-export const payouts = pgTable("payouts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  periodStart: date("period_start").notNull(),
-  periodEnd: date("period_end").notNull(),
-  grossInr: integer("gross_inr").notNull(),
-  platformFeeInr: integer("platform_fee_inr").notNull(),
-  tdsInr: integer("tds_inr").notNull().default(0),
-  netInr: integer("net_inr").notNull(),
-  razorpayTransferId: varchar("razorpay_transfer_id", { length: 40 }),
-  status: payoutStatusEnum("status").notNull().default("pending"),
-  ...ts(),
-});
+export const payouts = pgTable(
+  "payouts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    grossInr: integer("gross_inr").notNull(),
+    platformFeeInr: integer("platform_fee_inr").notNull(),
+    tdsInr: integer("tds_inr").notNull().default(0),
+    netInr: integer("net_inr").notNull(),
+    razorpayTransferId: varchar("razorpay_transfer_id", { length: 40 }),
+    status: payoutStatusEnum("status").notNull().default("pending"),
+    ...ts(),
+  },
+  (t) => ({
+    userIdx: index("payouts_user_idx").on(t.userId),
+    statusIdx: index("payouts_status_idx").on(t.status),
+  }),
+);

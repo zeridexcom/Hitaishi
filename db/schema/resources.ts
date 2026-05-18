@@ -8,6 +8,7 @@ import {
   boolean,
   pgEnum,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./identity";
 import { subjectEnum } from "./doubts";
@@ -25,19 +26,23 @@ const ts = () => ({
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const resources = pgTable("resources", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  uploaderId: uuid("uploader_id").references(() => users.id).notNull(),
-  kind: resourceKindEnum("kind").notNull(),
-  title: varchar("title", { length: 200 }).notNull(),
-  subject: subjectEnum("subject").notNull().default("other"),
-  r2Key: text("r2_key"),
-  externalUrl: text("external_url"),
-  sizeBytes: bigint("size_bytes", { mode: "number" }),
-  scope: resourceScopeEnum("scope").notNull().default("private"),
-  platformApproved: boolean("platform_approved").notNull().default(false),
-  ...ts(),
-});
+export const resources = pgTable(
+  "resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    uploaderId: uuid("uploader_id").references(() => users.id).notNull(),
+    kind: resourceKindEnum("kind").notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    subject: subjectEnum("subject").notNull().default("other"),
+    r2Key: text("r2_key"),
+    externalUrl: text("external_url"),
+    sizeBytes: bigint("size_bytes", { mode: "number" }),
+    scope: resourceScopeEnum("scope").notNull().default("private"),
+    platformApproved: boolean("platform_approved").notNull().default(false),
+    ...ts(),
+  },
+  (t) => ({ uploaderIdx: index("resources_uploader_idx").on(t.uploaderId) }),
+);
 
 export const resourceShares = pgTable(
   "resource_shares",

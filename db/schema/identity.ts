@@ -8,6 +8,7 @@ import {
   jsonb,
   integer,
   inet,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["student", "mentor", "admin"]);
@@ -33,17 +34,24 @@ const ts = () => ({
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: varchar("email", { length: 255 }).unique().notNull(),
-  phone: varchar("phone", { length: 15 }),
-  passwordHash: varchar("password_hash", { length: 255 }),
-  role: userRoleEnum("role").notNull(),
-  status: userStatusEnum("status").notNull().default("pending"),
-  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  ...ts(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: varchar("email", { length: 255 }).unique().notNull(),
+    phone: varchar("phone", { length: 15 }),
+    passwordHash: varchar("password_hash", { length: 255 }),
+    role: userRoleEnum("role").notNull(),
+    status: userStatusEnum("status").notNull().default("pending"),
+    lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    ...ts(),
+  },
+  (t) => ({
+    roleIdx: index("users_role_idx").on(t.role),
+    phoneIdx: index("users_phone_idx").on(t.phone),
+  }),
+);
 
 export const profiles = pgTable("profiles", {
   userId: uuid("user_id")
@@ -60,24 +68,35 @@ export const profiles = pgTable("profiles", {
   ...ts(),
 });
 
-export const mentorVerifications = pgTable("mentor_verifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  documents: jsonb("documents"),
-  linkedinUrl: text("linkedin_url"),
-  jeeRank: integer("jee_rank"),
-  status: verificationStatusEnum("status").notNull().default("pending"),
-  reviewedBy: uuid("reviewed_by").references(() => users.id),
-  reviewNotes: text("review_notes"),
-  ...ts(),
-});
+export const mentorVerifications = pgTable(
+  "mentor_verifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    documents: jsonb("documents"),
+    linkedinUrl: text("linkedin_url"),
+    jeeRank: integer("jee_rank"),
+    status: verificationStatusEnum("status").notNull().default("pending"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    reviewNotes: text("review_notes"),
+    ...ts(),
+  },
+  (t) => ({
+    userIdx: index("mentor_verifications_user_idx").on(t.userId),
+    statusIdx: index("mentor_verifications_status_idx").on(t.status),
+  }),
+);
 
-export const authSessions = pgTable("auth_sessions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  sessionToken: varchar("session_token", { length: 255 }).unique().notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  userAgent: text("user_agent"),
-  ipAddress: inet("ip_address"),
-  ...ts(),
-});
+export const authSessions = pgTable(
+  "auth_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    sessionToken: varchar("session_token", { length: 255 }).unique().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    userAgent: text("user_agent"),
+    ipAddress: inet("ip_address"),
+    ...ts(),
+  },
+  (t) => ({ userIdx: index("auth_sessions_user_idx").on(t.userId) }),
+);
