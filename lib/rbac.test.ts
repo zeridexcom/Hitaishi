@@ -32,6 +32,31 @@ describe("resolveRouteAccess", () => {
     expect(resolveRouteAccess("/mentor/dashboard", "admin").allow).toBe(false);
   });
 
+  it("only known webhook providers are public", () => {
+    expect(resolveRouteAccess("/api/webhooks/razorpay", null).allow).toBe(true);
+    expect(resolveRouteAccess("/api/webhooks/hms", null).allow).toBe(true);
+    expect(resolveRouteAccess("/api/webhooks/msg91", null).allow).toBe(true);
+    expect(resolveRouteAccess("/api/webhooks/resend", null).allow).toBe(true);
+  });
+
+  it("unknown webhook paths require auth (no implicit prefix opening)", () => {
+    expect(resolveRouteAccess("/api/webhooks/unknown", null)).toEqual({
+      allow: false,
+      redirectTo: "/login",
+    });
+    expect(resolveRouteAccess("/api/webhooks", null)).toEqual({
+      allow: false,
+      redirectTo: "/login",
+    });
+    expect(resolveRouteAccess("/api/webhooks/razorpay/../admin", null).allow).toBe(
+      false,
+    );
+  });
+
+  it("checkout is public (CTA target)", () => {
+    expect(resolveRouteAccess("/checkout", null).allow).toBe(true);
+  });
+
   it("authenticated user hitting /login is bounced to their portal", () => {
     const roles: Role[] = ["student", "mentor", "admin"];
     for (const r of roles) {
