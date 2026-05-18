@@ -50,6 +50,41 @@ describe("scanMessage", () => {
     expect(scanMessage("Email: STUDENT@GMAIL.COM").flags).toContain("email");
   });
 
+  it("does NOT flag physics shorthand 'dm/dt' as off-platform (M1)", () => {
+    expect(scanMessage("solve dm/dt = 5 for rotational mechanics").flags).not.toContain(
+      "off_platform",
+    );
+    expect(scanMessage("the ratio dm:dx is constant").flags).not.toContain(
+      "off_platform",
+    );
+  });
+
+  it("still catches the real 'dm me on X' patterns", () => {
+    expect(scanMessage("dm me your notes").flags).toContain("off_platform");
+    expect(scanMessage("slide into my dms").flags).toContain("off_platform");
+  });
+
+  it("does NOT flag platform email addresses (@mentoriit.com) (M2)", () => {
+    expect(
+      scanMessage("your receipt will go to student123@mentoriit.com").flags,
+    ).not.toContain("email");
+  });
+
+  it("only flags non-platform email when paired with mail/contact intent (M2)", () => {
+    // bare reference — not flagged
+    expect(scanMessage("you'll see student@example.com on the form").flags).not.toContain(
+      "email",
+    );
+    // intent words — flagged
+    expect(scanMessage("mail me at student@example.com").flags).toContain("email");
+    expect(scanMessage("contact: student@example.com").flags).toContain("email");
+    expect(scanMessage("reach me on student@example.com").flags).toContain("email");
+  });
+
+  it("includes discord in off-platform flags (L10)", () => {
+    expect(scanMessage("join my discord").flags).toContain("off_platform");
+  });
+
   it("handles empty / whitespace input safely", () => {
     expect(scanMessage("").clean).toBe(true);
     expect(scanMessage("   ").clean).toBe(true);
