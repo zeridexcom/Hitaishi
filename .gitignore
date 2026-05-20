@@ -13,3 +13,4 @@ coverage
 db/migrations/meta
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+.mcp.json
