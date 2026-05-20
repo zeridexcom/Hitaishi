@@ -1,5 +1,7 @@
 import "./globals.css";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Suspense } from "react";
+import TransitionLoader from "@/components/TransitionLoader";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -39,7 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={null}>
+          <TransitionLoader />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }
+
