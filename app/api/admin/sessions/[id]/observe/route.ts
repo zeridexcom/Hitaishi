@@ -1,40 +1,44 @@
 import { NextRequest } from "next/server";
 import { fail, ok } from "@/lib/api";
-import { issueHmsToken } from "@/lib/hms";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { sessions } from "@/db/schema";
 
-// TODO(phase-6f): replace stub IDs with a Drizzle lookup against `sessions`
-// and the admin's session-derived userId. Currently any cookie-admin can
-// pull an observer token for any room, which is OK in dev (the route is
-// gated by middleware) but MUST be tightened before pilot.
 export async function POST(
   _req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const access = process.env.HMS_ACCESS_KEY;
-  const secret = process.env.HMS_SECRET;
-  if (!access || !secret) {
-    return Response.json(fail("100ms credentials not configured"), {
-      status: 503,
-      headers: { "Retry-After": "60" },
-    });
-  }
-
   const sessionId = params.id;
-  if (!sessionId || !/^[a-zA-Z0-9_-]+$/.test(sessionId)) {
+  if (!sessionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
     return Response.json(fail("invalid session id"), { status: 400 });
   }
 
   try {
-    const token = issueHmsToken({
-      appAccessKey: access,
-      appSecret: secret,
-      roomId: sessionId, // TODO: lookup sessions.hmsRoomId
-      userId: "admin-observer", // TODO: req.session.userId once auth wired
+    const rows = await db
+      .select({ meetLink: sessions.meetLink, title: sessions.title })
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+
+    const session = rows[0] ?? null;
+
+    if (!session) {
+      return Response.json(fail("session not found"), { status: 404 });
+    }
+
+    if (!session.meetLink) {
+      return Response.json(fail("no meet link generated yet for this session"), {
+        status: 404,
+      });
+    }
+
+    return Response.json(ok({
+      meetLink: session.meetLink,
+      sessionId,
       role: "observer",
-      ttlSeconds: 1800, // 30 min observe windows
-    });
-    return Response.json(ok({ token, roomId: sessionId, role: "observer" }));
-  } catch {
-    return Response.json(fail("token issuance failed"), { status: 500 });
+    }));
+  } catch (err) {
+    console.error("observe route error:", err);
+    return Response.json(fail("failed to retrieve session"), { status: 500 });
   }
 }

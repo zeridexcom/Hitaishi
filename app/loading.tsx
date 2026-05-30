@@ -12,7 +12,7 @@ export default function Loading() {
         {/* Elegant Logo / Loading Text */}
         <div className="text-center">
           <h2 className="font-serif italic text-3xl font-medium text-primary-deep tracking-wide animate-pulse">
-            MentorIIT
+            Hitaishi
           </h2>
           <p className="font-mono text-[10px] text-ink-faint tracking-widest uppercase mt-2">
             Securing Connection...

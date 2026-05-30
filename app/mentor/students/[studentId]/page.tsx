@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
+import { PrivacyNoticeBanner } from "@/components/PrivacyNoticeBanner";
 import { Card, CardBody, CardHeader, LinkButton, Pill, Textarea } from "@/components/ui";
 import { initials } from "@/lib/format";
 
@@ -67,6 +68,7 @@ export default function MentorStudentDetailPage({ params }: PageProps) {
         </div>
       }
     >
+      <PrivacyNoticeBanner />
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
         <div className="flex flex-col gap-5">
           <Card className="flex flex-col" style={{ minHeight: "60vh" }}>

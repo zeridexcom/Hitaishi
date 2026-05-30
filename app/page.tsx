@@ -69,7 +69,7 @@ export default function LandingPage() {
             href="/"
             className="font-serif text-2xl font-medium text-primary-deep"
           >
-            MentorIIT
+            Hitaishi
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-ink-soft">
             <a href="#method">The Method</a>
@@ -180,6 +180,46 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="why-hitaishi" className="py-16 bg-surface-elevated">
+        <div className="max-w-container mx-auto px-6 md:px-10">
+          <div className="meta">WHY HITAISHI</div>
+          <h2 className="font-serif text-3xl md:text-4xl mt-2 max-w-[40ch]">
+            Built differently because the stakes are different.
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6 mt-10">
+            <div className="bg-surface-card border border-rule rounded-card p-6">
+              <div className="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-lg font-serif text-primary-deep">1</div>
+              <div className="font-serif text-xl mt-4">For Students</div>
+              <p className="text-sm text-ink-soft mt-3">
+                Your mentor isn&apos;t a lecturer — they&apos;re someone who sat in the same
+                exam hall, cracked JEE, and now guides you through it. Daily chat,
+                weekly calls, curated resources. No batch sizes, no recorded
+                lectures, no one-size-fits-all.
+              </p>
+            </div>
+            <div className="bg-surface-card border border-rule rounded-card p-6">
+              <div className="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-lg font-serif text-primary-deep">2</div>
+              <div className="font-serif text-xl mt-4">For Mentors</div>
+              <p className="text-sm text-ink-soft mt-3">
+                You&apos;ve cleared JEE. Now help someone else do it. We handle the
+                payments, scheduling, and compliance — you focus on the teaching.
+                Set your own hours, work from anywhere, and earn doing what matters.
+              </p>
+            </div>
+            <div className="bg-surface-card border border-rule rounded-card p-6">
+              <div className="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-lg font-serif text-primary-deep">3</div>
+              <div className="font-serif text-xl mt-4">Why We&apos;re Different</div>
+              <p className="text-sm text-ink-soft mt-3">
+                We&apos;re not a coaching class. We&apos;re not a content library. We&apos;re a
+                one-on-one relationship between you and someone who&apos;s been exactly
+                where you are. Every feature — chat, sessions, doubts, resources —
+                exists to protect and deepen that relationship.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section
         id="pricing"
         className="border-y border-rule bg-surface-elevated py-16"
@@ -191,7 +231,7 @@ export default function LandingPage() {
               One plan. No upsells. No hidden tiers.
             </h2>
             <p className="text-ink-soft mt-4 max-w-[50ch]">
-              You either need a mentor or you don't. We don't believe in
+              You either need a mentor or you don&apos;t. We don&apos;t believe in
               fragmenting access to your own strategist.
             </p>
           </div>
@@ -232,7 +272,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-rule bg-surface-card py-8">
         <div className="max-w-container mx-auto px-6 md:px-10 flex flex-wrap items-center justify-between gap-4 text-sm text-ink-faint">
-          <div>© 2026 MentorIIT · For JEE aspirants, by IITians</div>
+          <div>© 2026 Hitaishi · For JEE aspirants, by IITians</div>
           <div className="flex items-center gap-5">
             <Link href="/support">Support</Link>
             <Link href="/privacy">Privacy</Link>

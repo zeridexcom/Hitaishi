@@ -60,7 +60,7 @@ export default function StudentDashboard() {
                 ))}
               </div>
               <p className="text-sm text-ink mt-4 italic">
-                "{mockMentor.lastMessage}"
+                &ldquo;{mockMentor.lastMessage}&rdquo;
               </p>
               <div className="flex items-center gap-4 mt-4">
                 <LinkButton href="/student/chat" size="md">
@@ -118,7 +118,7 @@ export default function StudentDashboard() {
         <Card>
           <CardHeader meta="DAILY INSIGHT" title="From your mentor" />
           <CardBody>
-            <p className="text-sm text-ink-soft italic">"{mockInsight}"</p>
+            <p className="text-sm text-ink-soft italic">&ldquo;{mockInsight}&rdquo;</p>
           </CardBody>
         </Card>
       </div>

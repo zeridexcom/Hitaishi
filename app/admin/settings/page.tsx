@@ -4,14 +4,14 @@ import { Card, CardBody, CardHeader, Field, Input, Pill } from "@/components/ui"
 // TODO(phase-2f): persist to a system_config jsonb table; reads default from process.env
 const featureFlags = [
   { key: "betaDoubtAuction", label: "Beta — doubt auction", value: false, desc: "Mentors bid response times on new doubts." },
-  { key: "groupSessions", label: "Group sessions", value: true, desc: "12-student group rooms via 100ms." },
+  { key: "groupSessions", label: "Group sessions", value: true, desc: "12-student group rooms via Jitsi." },
   { key: "mentorPayoutSelfServe", label: "Mentor payout self-serve", value: false, desc: "Mentors can request off-cycle payouts." },
   { key: "newOnboarding", label: "New onboarding (S.02 v2)", value: true, desc: "3-step student onboarding with goal capture." },
 ];
 
 const integrations = [
   { name: "Razorpay", env: "RAZORPAY_KEY_ID", status: "Connected", tone: "primary" as const, lastChecked: "2 min ago" },
-  { name: "100ms", env: "HMS_APP_KEY", status: "Connected", tone: "primary" as const, lastChecked: "8 min ago" },
+  { name: "Jitsi Meet", env: "—", status: "Active", tone: "primary" as const, lastChecked: "always" },
   { name: "MSG91 (SMS)", env: "MSG91_AUTH_KEY", status: "Connected", tone: "primary" as const, lastChecked: "4 min ago" },
   { name: "Resend (Email)", env: "RESEND_API_KEY", status: "Degraded", tone: "warn" as const, lastChecked: "12 min ago" },
 ];

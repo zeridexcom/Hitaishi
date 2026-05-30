@@ -64,9 +64,9 @@ describe("scanMessage", () => {
     expect(scanMessage("slide into my dms").flags).toContain("off_platform");
   });
 
-  it("does NOT flag platform email addresses (@mentoriit.com) (M2)", () => {
+  it("does NOT flag platform email addresses (@hitaishi.com) (M2)", () => {
     expect(
-      scanMessage("your receipt will go to student123@mentoriit.com").flags,
+      scanMessage("your receipt will go to student123@hitaishi.com").flags,
     ).not.toContain("email");
   });
 

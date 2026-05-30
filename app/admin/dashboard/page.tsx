@@ -50,7 +50,7 @@ const liveSessions = [
 
 const health = [
   { label: "Razorpay webhooks (24h)", status: "Healthy", tone: "primary" as const },
-  { label: "100ms session capacity", status: "78 / 200", tone: "primary" as const },
+  { label: "Jitsi session capacity", status: "78 / 200", tone: "primary" as const },
   { label: "Audit log retention", status: "2 yr policy active", tone: "neutral" as const },
 ];
 

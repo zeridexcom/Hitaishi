@@ -17,9 +17,9 @@ const credSchema = z.object({
 export type LoginState = { error?: string } | undefined;
 
 const DEMO_EMAIL: Record<Role, string> = {
-  student: "student@demo.mentoriit.com",
-  mentor: "mentor@demo.mentoriit.com",
-  admin: "admin@demo.mentoriit.com",
+  student: "student@demo.hitaishi.app",
+  mentor: "mentor@demo.hitaishi.app",
+  admin: "admin@demo.hitaishi.app",
 };
 
 async function signIn(email: string, password: string): Promise<{ role: Role } | { error: string }> {

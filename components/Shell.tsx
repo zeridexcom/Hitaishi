@@ -13,6 +13,7 @@ type MentorNav =
   | "dashboard"
   | "students"
   | "doubts"
+  | "sessions"
   | "calendar"
   | "resources"
   | "earnings";
@@ -49,9 +50,9 @@ const NAV = {
     { key: "dashboard", label: "Dashboard", href: "/mentor/dashboard", icon: "◐" },
     { key: "students", label: "My Students", href: "/mentor/students", icon: "◉" },
     { key: "doubts", label: "Doubt Inbox", href: "/mentor/doubts", icon: "?" },
+    { key: "sessions", label: "Sessions", href: "/mentor/sessions", icon: "▢" },
     { key: "calendar", label: "Calendar", href: "/mentor/calendar", icon: "▦" },
     { key: "resources", label: "Resources", href: "/mentor/resources", icon: "❒" },
-    { key: "earnings", label: "Earnings", href: "/mentor/earnings", icon: "₹" },
   ],
   admin: [
     { key: "dashboard", label: "Overview", href: "/admin/dashboard", icon: "◐" },
@@ -96,7 +97,7 @@ export async function Shell({
                 href={`/${role}/dashboard`}
                 className="font-serif text-2xl font-medium text-primary-deep"
               >
-                MentorIIT
+                Hitaishi
               </Link>
               <div className="meta mt-1">{ROLE_LABEL[role]} portal</div>
             </div>

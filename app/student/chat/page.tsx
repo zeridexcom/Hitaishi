@@ -1,4 +1,5 @@
 import { Shell } from "@/components/Shell";
+import { PrivacyNoticeBanner } from "@/components/PrivacyNoticeBanner";
 import { Card, CardBody, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
 
@@ -64,6 +65,7 @@ export default function StudentChatPage() {
       pageSubtitle={`${mockMentor.institute} · Active ${mockMentor.activeAgo} ago`}
       actions={<LinkButton href="/student/sessions" variant="ghost" size="sm">Schedule call</LinkButton>}
     >
+      <PrivacyNoticeBanner />
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-5 h-[70vh]">
         <Card className="overflow-y-auto">
           <div className="px-4 py-3 border-b border-rule">

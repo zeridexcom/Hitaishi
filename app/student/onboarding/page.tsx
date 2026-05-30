@@ -26,7 +26,7 @@ export default function StudentOnboardingPage({ searchParams }: Props) {
     <main className="min-h-screen bg-surface text-ink">
       <header className="border-b border-rule bg-surface-card px-6 md:px-10 py-5 flex items-center justify-between">
         <Link href="/" className="font-serif text-xl text-primary-deep">
-          MentorIIT
+          Hitaishi
         </Link>
         <div className="meta">S.02 — ONBOARDING</div>
       </header>
@@ -49,7 +49,7 @@ function Step1Basics() {
         <div className="meta">STEP 1 OF 3</div>
         <h2 className="font-serif text-3xl mt-1">Tell us about yourself</h2>
         <p className="text-sm text-ink-soft mt-2">
-          We'll use this to personalize your mentorship path.
+          We&apos;ll use this to personalize your mentorship path.
         </p>
         <form
           action="/student/onboarding?step=1"

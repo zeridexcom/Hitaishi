@@ -3,19 +3,19 @@ import postgres from "postgres";
 import * as schema from "@/db/schema";
 
 const globalForDb = globalThis as unknown as {
-  __mentoriit_pg?: ReturnType<typeof postgres>;
-  __mentoriit_db?: any;
+  __hitaishi_pg?: ReturnType<typeof postgres>;
+  __hitaishi_db?: any;
 };
 
 function getDb() {
-  if (globalForDb.__mentoriit_db) return globalForDb.__mentoriit_db;
+  if (globalForDb.__hitaishi_db) return globalForDb.__hitaishi_db;
 
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error("DATABASE_URL is required");
   }
 
-  let client = globalForDb.__mentoriit_pg;
+  let client = globalForDb.__hitaishi_pg;
   if (!client) {
     client = postgres(url, {
       max: 10,
@@ -24,13 +24,13 @@ function getDb() {
       onnotice: () => {},
     });
     if (process.env.NODE_ENV !== "production") {
-      globalForDb.__mentoriit_pg = client;
+      globalForDb.__hitaishi_pg = client;
     }
   }
 
   const dbInstance = drizzle(client, { schema });
   if (process.env.NODE_ENV !== "production") {
-    globalForDb.__mentoriit_db = dbInstance;
+    globalForDb.__hitaishi_db = dbInstance;
   }
   return dbInstance;
 }

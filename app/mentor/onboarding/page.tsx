@@ -37,7 +37,7 @@ export default function MentorOnboardingPage({ searchParams }: Props) {
     <main className="min-h-screen bg-surface text-ink">
       <header className="border-b border-rule bg-surface-card px-6 md:px-10 py-5 flex items-center justify-between">
         <Link href="/" className="font-serif text-xl text-primary-deep">
-          MentorIIT
+          Hitaishi
         </Link>
         <div className="meta">M.02 — MENTOR ONBOARDING</div>
       </header>
@@ -145,7 +145,7 @@ function Step2Subjects() {
         <div className="meta">STEP 2 OF 4 · 50%</div>
         <h2 className="font-serif text-3xl mt-1">What you teach</h2>
         <p className="text-sm text-ink-soft mt-2">
-          Subject expertise and pedagogical style. Pick what's true, not what
+          Subject expertise and pedagogical style. Pick what&apos;s true, not what
           markets well.
         </p>
 
@@ -206,7 +206,7 @@ function Step2Subjects() {
           </Field>
 
           <p className="text-xs text-ink-faint italic">
-            Students often value "Concept building" over pure shortcuts.
+            Students often value &ldquo;Concept building&rdquo; over pure shortcuts.
           </p>
 
           <input type="hidden" name="step" value="2" />
@@ -229,7 +229,7 @@ function Step3Availability() {
     <Card>
       <CardBody>
         <div className="meta">STEP 3 OF 4 · 75%</div>
-        <h2 className="font-serif text-3xl mt-1">When you're available</h2>
+        <h2 className="font-serif text-3xl mt-1">When you&apos;re available</h2>
         <p className="text-sm text-ink-soft mt-2">
           Tap to toggle blocks. You can refine this any time after activation.
         </p>

@@ -2,7 +2,7 @@ import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
 
-// TODO(phase-2f): hydrate from sessions + sessionParticipants + 100ms room state
+// TODO(phase-2f): hydrate from sessions + sessionParticipants + meet link state
 const systemStatus = {
   activeStreams: 12,
   mediaServer: "Media Server 04",

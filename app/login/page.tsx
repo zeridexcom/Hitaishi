@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "./LoginForm";
-import { demoLoginAction } from "./actions";
 import { getCurrentUser } from "@/lib/session";
-import { Card, CardBody, Pill } from "@/components/ui";
-
-const DEMOS = [
-  { role: "student" as const, label: "Student", desc: "Arjun · JEE Adv 2027" },
-  { role: "mentor" as const, label: "Mentor", desc: "Priya · IIT Bombay '24" },
-  { role: "admin" as const, label: "Admin", desc: "Internal control" },
-];
+import { Card, CardBody } from "@/components/ui";
 
 interface PageProps {
   searchParams?: { role?: string };
@@ -26,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
     <main className="min-h-screen bg-surface grid lg:grid-cols-2">
       <aside className="hidden lg:flex flex-col justify-between bg-primary-deep text-primary-on px-12 py-10">
         <Link href="/" className="font-serif text-3xl">
-          MentorIIT
+          Hitaishi
         </Link>
         <div>
           <div className="font-mono text-xs uppercase tracking-widest opacity-70">
@@ -78,7 +71,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
           <p className="text-sm text-ink-soft mt-2">
             {role === "admin"
               ? "Email + password + 2FA. IP allowlisted access."
-              : "Sign in with your email and password, or jump in as a demo."}
+              : "Sign in with your email and password."}
           </p>
 
           <Card className="mt-6">
@@ -101,35 +94,14 @@ export default async function LoginPage({ searchParams }: PageProps) {
             </CardBody>
           </Card>
 
-          {!isAdmin && (
-            <>
-              <div className="flex items-center gap-3 my-6">
-                <div className="flex-1 h-px bg-rule" />
-                <span className="meta">or try a demo</span>
-                <div className="flex-1 h-px bg-rule" />
-              </div>
-
-              <div className="grid gap-3">
-                {DEMOS.map((d) => (
-                  <form key={d.role} action={demoLoginAction}>
-                    <input type="hidden" name="role" value={d.role} />
-                    <button
-                      type="submit"
-                      className="w-full text-left bg-surface-card border border-rule rounded-card p-4 hover:bg-surface-elevated transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="font-serif text-lg">
-                          Sign in as demo {d.label}
-                        </div>
-                        <Pill tone="neutral">{d.role}</Pill>
-                      </div>
-                      <div className="text-sm text-ink-soft mt-1">{d.desc}</div>
-                    </button>
-                  </form>
-                ))}
-              </div>
-            </>
-          )}
+          <div className="mt-6 p-4 bg-secondary-soft rounded-card border border-secondary/20">
+            <div className="meta text-xs mb-1">DEMO CREDENTIALS</div>
+            <div className="text-xs text-ink-soft space-y-0.5 font-mono">
+              <div>student@demo.hitaishi.app / demo1234</div>
+              <div>mentor@demo.hitaishi.app / demo1234</div>
+              <div>admin@demo.hitaishi.app / demo1234</div>
+            </div>
+          </div>
 
           {role === "mentor" && (
             <p className="text-sm text-ink-soft mt-6">

@@ -16,7 +16,6 @@ const PUBLIC_PREFIXES = ["/_next/"];
 
 const KNOWN_WEBHOOKS = new Set<string>([
   "/api/webhooks/razorpay",
-  "/api/webhooks/hms",
   "/api/webhooks/msg91",
   "/api/webhooks/resend",
 ]);

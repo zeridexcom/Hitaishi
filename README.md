@@ -1,6 +1,6 @@
-# MentorIIT
+# Hitaishi
 
-Private, paid coaching platform connecting JEE/IIT aspirants with verified IIT mentors. Three role-based portals (Student, Mentor, Admin), one Next.js monolith, deployed to a single Hostinger VPS.
+Private mentorship & guidance platform connecting JEE/IIT aspirants with verified IIT mentors. Three role-based portals (Student, Mentor, Admin), one Next.js monolith, deployed to a single Hostinger VPS.
 
 See [`system design hitachi.md`](./system%20design%20hitachi.md) for the full spec and [`implementation-plan.md`](./implementation-plan.md) for phasing.
 

@@ -26,8 +26,8 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "MentorIIT",
-  description: "Private mentorship for JEE/IIT aspirants",
+  title: "Hitaishi",
+  description: "Private mentorship & guidance for JEE/IIT aspirants",
   manifest: "/manifest.json",
 };
 

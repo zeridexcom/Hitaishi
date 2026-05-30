@@ -14,24 +14,24 @@ interface DemoUser {
 
 const DEMO: DemoUser[] = [
   {
-    email: "student@demo.mentoriit.com",
+    email: "student@demo.hitaishi.app",
     password: "demo1234",
     role: "student",
     fullName: "Arjun Sharma",
     bio: "Class 12, targeting JEE Main 2026.",
   },
   {
-    email: "mentor@demo.mentoriit.com",
+    email: "mentor@demo.hitaishi.app",
     password: "demo1234",
     role: "mentor",
     fullName: "Priya Iyer",
     bio: "IIT Bombay '22, CSE. AIR 312, JEE Advanced.",
   },
   {
-    email: "admin@demo.mentoriit.com",
+    email: "admin@demo.hitaishi.app",
     password: "demo1234",
     role: "admin",
-    fullName: "MentorIIT Admin",
+    fullName: "Hitaishi Admin",
     bio: "Internal admin account.",
   },
 ];

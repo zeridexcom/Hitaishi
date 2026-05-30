@@ -1,6 +1,6 @@
 # DEPLOY — Hostinger VPS
 
-Operational runbook for shipping MentorIIT to production. Mirrors design doc §08.
+Operational runbook for shipping Hitaishi to production. Mirrors design doc §08.
 
 ## One-time VPS setup
 

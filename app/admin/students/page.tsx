@@ -54,7 +54,7 @@ const students = [
   {
     id: "u4",
     name: "Internal Test",
-    email: "test@mentoriit.com",
+    email: "test@hitaishi.app",
     phone: "—",
     plan: "Comp",
     paymentStatus: "n/a" as const,

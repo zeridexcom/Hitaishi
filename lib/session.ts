@@ -7,7 +7,7 @@ import { authSessions, profiles, users } from "@/db/schema";
 import { computeExpiry, createSessionToken } from "@/lib/auth";
 import type { Role } from "@/lib/rbac";
 
-export const SESSION_COOKIE = "mentoriit_session";
+export const SESSION_COOKIE = "hitaishi_session";
 const SESSION_DAYS = 7;
 
 export interface CurrentUser {

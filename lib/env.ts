@@ -24,8 +24,6 @@ const productionExtras = z.object({
   RAZORPAY_KEY_ID: z.string().min(1),
   RAZORPAY_KEY_SECRET: z.string().min(1),
   RAZORPAY_WEBHOOK_SECRET: z.string().min(1),
-  HMS_ACCESS_KEY: z.string().min(1),
-  HMS_SECRET: z.string().min(32, "HMS_SECRET must be >= 32 chars"),
   R2_ACCOUNT_ID: z.string().min(1),
   R2_ACCESS_KEY_ID: z.string().min(1),
   R2_SECRET_ACCESS_KEY: z.string().min(1),

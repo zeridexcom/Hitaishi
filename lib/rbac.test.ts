@@ -34,7 +34,6 @@ describe("resolveRouteAccess", () => {
 
   it("only known webhook providers are public", () => {
     expect(resolveRouteAccess("/api/webhooks/razorpay", null).allow).toBe(true);
-    expect(resolveRouteAccess("/api/webhooks/hms", null).allow).toBe(true);
     expect(resolveRouteAccess("/api/webhooks/msg91", null).allow).toBe(true);
     expect(resolveRouteAccess("/api/webhooks/resend", null).allow).toBe(true);
   });

@@ -4,4 +4,5 @@ export * from "./mentorship";
 export * from "./sessions";
 export * from "./doubts";
 export * from "./resources";
+export * from "./feedbacks";
 export * from "./system";

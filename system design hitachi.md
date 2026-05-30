@@ -1,11 +1,11 @@
 # A closed coaching platform *for the kids who actually want IIT.*
 
-**MentorIIT — System Design Document v0.1**
+**Hitaishi — System Design Document v0.1**
 *Drafted for Aditya / iTarang*
 
 ---
 
-> MentorIIT is a private, paid platform that connects JEE/IIT aspirants with verified IIT mentors. Every user is hand-picked or paid in — no public signups, no spam, no fraud. This document specifies the full system: three role-based portals, the tech stack behind them, and the UI of every page in v1.
+> Hitaishi is a private mentorship & guidance platform that connects JEE/IIT aspirants with verified IIT mentors. Every user is hand-picked or paid in — no public signups, no spam, no fraud. This document specifies the full system: three role-based portals, the tech stack behind them, and the UI of every page in v1.
 
 ## 01. Overview
 

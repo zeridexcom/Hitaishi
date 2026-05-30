@@ -1,12 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const SESSION_COOKIE = "mentoriit_session";
+const SESSION_COOKIE = "hitaishi_session";
 
 const PUBLIC_EXACT = new Set<string>([
   "/",
   "/checkout",
   "/login",
+  "/privacy",
+  "/terms",
   "/api/health",
+  "/api/auth/demo",
   "/favicon.ico",
 ]);
 

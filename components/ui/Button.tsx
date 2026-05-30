@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ButtonHTMLAttributes, ReactNode } from "react";
+import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -48,6 +48,8 @@ export function Button({
 
 interface LinkButtonProps extends BaseProps {
   href: string;
+  target?: string;
+  rel?: string;
 }
 
 export function LinkButton({
@@ -55,11 +57,15 @@ export function LinkButton({
   size = "md",
   className = "",
   href,
+  target,
+  rel,
   children,
 }: LinkButtonProps) {
   return (
     <Link
       href={href}
+      target={target}
+      rel={rel}
       className={`inline-flex items-center justify-center gap-2 font-medium rounded-btn transition-colors ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
     >
       {children}

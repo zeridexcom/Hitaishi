@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import * as schema from "./index";
 
-describe("Drizzle schema — domain coverage (24 tables)", () => {
+describe("Drizzle schema — domain coverage (25 tables)", () => {
   const expected = [
     // D.01 Identity & Access (4)
     "users",
@@ -30,7 +30,9 @@ describe("Drizzle schema — domain coverage (24 tables)", () => {
     // D.06 Resources (2)
     "resources",
     "resourceShares",
-    // D.07 System (3)
+    // D.07 Feedback (1)
+    "feedbackTemplates",
+    // D.08 System (3)
     "notifications",
     "auditLog",
     "webhookEvents",
@@ -41,8 +43,8 @@ describe("Drizzle schema — domain coverage (24 tables)", () => {
     expect((schema as Record<string, unknown>)[name]).toBeDefined();
   });
 
-  it("exports exactly 24 tables", () => {
-    expect(expected.length).toBe(24);
+  it("exports exactly 25 tables", () => {
+    expect(expected.length).toBe(25);
   });
 
   it("users table has required columns", () => {

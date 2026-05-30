@@ -8,18 +8,16 @@ const valid = {
   RAZORPAY_KEY_ID: "rzp_live_x",
   RAZORPAY_KEY_SECRET: "secret",
   RAZORPAY_WEBHOOK_SECRET: "whsec",
-  HMS_ACCESS_KEY: "key",
-  HMS_SECRET: "h".repeat(32),
   R2_ACCOUNT_ID: "x",
   R2_ACCESS_KEY_ID: "k",
   R2_SECRET_ACCESS_KEY: "s",
   R2_BUCKET: "b",
   REDIS_URL: "redis://localhost:6379",
-  SOKETI_HOST: "realtime.mentoriit.com",
+  SOKETI_HOST: "realtime.hitaishi.app",
   SOKETI_KEY: "app-key",
   SOKETI_SECRET: "app-secret",
   RESEND_API_KEY: "re_xxx",
-  RESEND_FROM: "noreply@mentoriit.com",
+  RESEND_FROM: "noreply@hitaishi.app",
 };
 
 describe("validateEnv", () => {
@@ -39,11 +37,6 @@ describe("validateEnv", () => {
     const r = validateEnv({ ...valid, AUTH_SECRET: "too-short" });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors.some((e) => e.includes("AUTH_SECRET"))).toBe(true);
-  });
-
-  it("rejects short HMS_SECRET (<32 chars)", () => {
-    const r = validateEnv({ ...valid, HMS_SECRET: "short" });
-    expect(r.ok).toBe(false);
   });
 
   it("in development, missing optional vars are OK", () => {
