@@ -6,8 +6,8 @@ export const HERO = {
   trustLine: "Mentors from IITs & NITs · Flexible scheduling · Works alongside any coaching",
   pullQuote: "Coaching gives you the syllabus. Hitaishi gives you the edge.",
   image: {
-    src: "https://images.unsplash.com/photo-1709290749293-c6152a187b14?w=1920&q=80&auto=format&fit=crop",
-    alt: "A coaching classroom full of JEE aspirants at their desks",
+    src: "/images/hitaishi/student-night-study.png",
+    alt: "A JEE aspirant studying late at a desk under a warm lamp — the moment a wellwisher steps in.",
   },
 } as const;
 

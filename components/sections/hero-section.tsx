@@ -41,35 +41,29 @@ export function HeroSection() {
         />
       </motion.div>
 
-      {/* Strong centered scrim — always-present, generous in the middle */}
+      {/* Focused centered scrim — only as dark as text legibility needs.
+          Combined with the per-element text-shadow this keeps the image clearly visible. */}
       <div
         className="pointer-events-none absolute inset-0 z-10"
         style={{
           background:
-            "radial-gradient(ellipse 75% 65% at center, rgba(5,11,24,0.82) 0%, rgba(5,11,24,0.62) 45%, rgba(5,11,24,0.32) 80%, rgba(5,11,24,0.1) 100%)",
+            "radial-gradient(ellipse 65% 45% at center, rgba(5,11,24,0.5) 0%, rgba(5,11,24,0.25) 55%, rgba(5,11,24,0) 100%)",
         }}
       />
-      {/* Horizontal dark band — guarantees text legibility through any image */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-[55vh] -translate-y-1/2"
-        style={{
-          background:
-            "linear-gradient(180deg, transparent 0%, rgba(5,11,24,0.55) 25%, rgba(5,11,24,0.55) 75%, transparent 100%)",
-        }}
-      />
-      {/* Top + bottom edge gradients */}
+      {/* Soft top + bottom edge gradients so the header dock and scroll cue
+          have something to read against — kept light. */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 z-10 h-32"
         style={{
           background:
-            "linear-gradient(180deg, rgba(5,11,24,0.65) 0%, rgba(5,11,24,0) 100%)",
+            "linear-gradient(180deg, rgba(5,11,24,0.4) 0%, rgba(5,11,24,0) 100%)",
         }}
       />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32"
         style={{
           background:
-            "linear-gradient(0deg, rgba(5,11,24,0.65) 0%, rgba(5,11,24,0) 100%)",
+            "linear-gradient(0deg, rgba(5,11,24,0.4) 0%, rgba(5,11,24,0) 100%)",
         }}
       />
 
