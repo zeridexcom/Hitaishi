@@ -1,9 +1,23 @@
-import { Container } from "@/components/ui/Container";
 import { readLeads } from "@/lib/leadsStore";
+import type { Lead } from "@/lib/leadTypes";
 import { LeadsTableActions } from "./LeadsTableActions";
-import { Mail, Phone, MessageSquare, Inbox, Calendar } from "lucide-react";
+import { Mail, Phone, Inbox, Calendar, MessageSquare } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+const TYPE_LABEL: Record<Lead["type"], string> = {
+  "student-inquiry": "Student",
+  "mentor-application": "Mentor",
+  "institution-partner": "Institution",
+  general: "General",
+};
+
+const TYPE_TONE: Record<Lead["type"], string> = {
+  "student-inquiry": "bg-amber-50 text-amber-800 border-amber-200",
+  "mentor-application": "bg-emerald-50 text-emerald-800 border-emerald-200",
+  "institution-partner": "bg-indigo-50 text-indigo-800 border-indigo-200",
+  general: "bg-slate-100 text-slate-700 border-slate-200",
+};
 
 function formatDate(iso: string): string {
   try {
@@ -16,95 +30,78 @@ function formatDate(iso: string): string {
   }
 }
 
-function countToday(leads: { createdAt: string }[]): number {
-  const today = new Date().toDateString();
-  return leads.filter((l) => new Date(l.createdAt).toDateString() === today).length;
+function summarize(lead: Lead): string {
+  switch (lead.type) {
+    case "student-inquiry":
+      return `Class ${lead.currentClass}${lead.coachingInstitute ? ` · ${lead.coachingInstitute}` : ""} · ${lead.city}`;
+    case "institution-partner":
+      return `${lead.institutionName} · ${lead.studentCount} students · ${lead.partnershipModel}`;
+    case "mentor-application":
+      return `${lead.institute} · ${lead.branch} · JEE ${lead.jeeYear} rank ${lead.jeeRank} · ${lead.subjects.join("/")}`;
+    case "general":
+      return `${lead.role} · ${lead.message}`;
+  }
 }
 
-function countThisWeek(leads: { createdAt: string }[]): number {
-  const now = Date.now();
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
-  return leads.filter((l) => now - new Date(l.createdAt).getTime() <= weekMs).length;
+function computeStats(leads: Lead[]): { total: number; today: number; week: number } {
+  const todayStr = new Date().toDateString();
+  const nowMs = Date.now();
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  let today = 0;
+  let week = 0;
+  for (const l of leads) {
+    const created = new Date(l.createdAt);
+    if (created.toDateString() === todayStr) today += 1;
+    if (nowMs - created.getTime() <= WEEK_MS) week += 1;
+  }
+  return { total: leads.length, today, week };
 }
 
 export default async function LeadsAdminPage() {
   const leads = await readLeads();
   leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  const total = leads.length;
-  const today = countToday(leads);
-  const week = countThisWeek(leads);
+  const { total, today, week } = computeStats(leads);
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-[var(--color-background)] border-b border-[var(--color-border)]">
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 opacity-70"
-          style={{
-            background:
-              "radial-gradient(900px 400px at 10% -10%, var(--color-cyan-glow) 0%, transparent 60%), radial-gradient(700px 400px at 95% 10%, var(--color-accent-glow) 0%, transparent 60%)",
-          }}
-        />
-        <Container>
-          <div className="py-10 md:py-14 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="border-b border-[var(--color-border)] bg-[var(--color-background)]">
+        <div className="mx-auto max-w-7xl px-6 py-10 md:py-14 lg:px-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.25em] text-[var(--color-cyan)]">
-                <span className="w-8 h-px bg-gradient-to-r from-transparent to-[var(--color-cyan)]" />
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-sky)]">
                 Leads dashboard
               </p>
-              <h1 className="mt-4 text-3xl md:text-5xl font-bold tracking-tight text-[var(--color-fg)] leading-[1.1]">
-                Contact form submissions
+              <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-[var(--color-fg)] md:text-4xl">
+                All Hitaishi submissions
               </h1>
-              <p className="mt-3 max-w-2xl text-sm md:text-base text-[var(--color-fg-muted)] leading-relaxed">
-                All inquiries from the contact form, newest first. Stored locally in{" "}
-                <code className="px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] text-xs">
-                  data/leads.json
-                </code>{" "}
-                for testing.
+              <p className="mt-3 max-w-2xl text-sm text-[var(--color-fg-muted)] md:text-base">
+                Student inquiries, mentor applications, institution partnership requests, and
+                general contact-form messages. Newest first.
               </p>
             </div>
             <LeadsTableActions count={total} />
           </div>
-        </Container>
+        </div>
       </section>
 
-      {/* Stats */}
-      <Container>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 -mt-6 md:-mt-8 relative z-10">
-          <StatCard
-            icon={<Inbox size={18} aria-hidden />}
-            label="Total leads"
-            value={total}
-            tone="accent"
-          />
-          <StatCard
-            icon={<Calendar size={18} aria-hidden />}
-            label="Today"
-            value={today}
-            tone="cyan"
-          />
-          <StatCard
-            icon={<MessageSquare size={18} aria-hidden />}
-            label="Last 7 days"
-            value={week}
-            tone="neutral"
-          />
+      <section className="mx-auto -mt-6 max-w-7xl px-6 lg:px-8">
+        <div className="relative z-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard icon={<Inbox size={18} aria-hidden />} label="Total" value={total} />
+          <StatCard icon={<Calendar size={18} aria-hidden />} label="Today" value={today} />
+          <StatCard icon={<MessageSquare size={18} aria-hidden />} label="Last 7 days" value={week} />
         </div>
-      </Container>
+      </section>
 
-      {/* Body */}
       <section className="py-10 md:py-14">
-        <Container>
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {leads.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-background-alt)] p-16 text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--color-cyan-glow)] text-[var(--color-cyan)] mb-4">
+              <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-sky-soft)] text-[var(--color-sky-hover)]">
                 <Inbox size={24} aria-hidden />
               </div>
-              <p className="text-base text-[var(--color-fg)] font-medium">No leads yet</p>
+              <p className="text-base font-medium text-[var(--color-fg)]">No leads yet</p>
               <p className="mt-2 text-sm text-[var(--color-fg-muted)]">
-                Submit the contact form to see entries appear here.
+                Submit any of the site forms to see entries appear here.
               </p>
             </div>
           ) : (
@@ -114,20 +111,27 @@ export default async function LeadsAdminPage() {
                   <thead className="bg-[var(--color-background-alt)] text-left">
                     <tr>
                       <Th>Created</Th>
+                      <Th>Type</Th>
                       <Th>Name</Th>
                       <Th>Contact</Th>
-                      <Th>Subject</Th>
-                      <Th>Message</Th>
+                      <Th>Details</Th>
                     </tr>
                   </thead>
                   <tbody>
                     {leads.map((lead) => (
                       <tr
                         key={lead.id}
-                        className="border-t border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                        className="border-t border-[var(--color-border)] transition-colors hover:bg-[var(--color-surface-hover)]"
                       >
                         <Td className="whitespace-nowrap text-[var(--color-fg-muted)]">
                           {formatDate(lead.createdAt)}
+                        </Td>
+                        <Td>
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${TYPE_TONE[lead.type]}`}
+                          >
+                            {TYPE_LABEL[lead.type]}
+                          </span>
                         </Td>
                         <Td>
                           <div className="font-semibold text-[var(--color-fg)]">{lead.name}</div>
@@ -135,35 +139,24 @@ export default async function LeadsAdminPage() {
                         <Td>
                           <div className="flex flex-col gap-1.5">
                             <a
-                              href={`mailto:${lead.email}`}
+                              href={`mailto:${encodeURIComponent(lead.email)}`}
                               className="inline-flex items-center gap-1.5 text-[var(--color-accent)] hover:underline"
                             >
-                              <Mail size={13} aria-hidden />
-                              {lead.email}
+                              <Mail size={13} aria-hidden /> {lead.email}
                             </a>
-                            {lead.phone && (
+                            {"phone" in lead && lead.phone && (
                               <a
-                                href={`tel:${lead.phone}`}
+                                href={`tel:${encodeURIComponent(lead.phone)}`}
                                 className="inline-flex items-center gap-1.5 text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
                               >
-                                <Phone size={13} aria-hidden />
-                                {lead.phone}
+                                <Phone size={13} aria-hidden /> {lead.phone}
                               </a>
                             )}
                           </div>
                         </Td>
-                        <Td className="text-[var(--color-fg-muted)]">
-                          {lead.subject ? (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--color-cyan-glow)] text-[var(--color-cyan)] border border-[var(--color-cyan)]/15">
-                              {lead.subject}
-                            </span>
-                          ) : (
-                            <span className="text-[var(--color-fg-subtle)]">—</span>
-                          )}
-                        </Td>
                         <Td className="max-w-md">
-                          <p className="text-[var(--color-fg)] whitespace-pre-wrap break-words leading-relaxed">
-                            {lead.message}
+                          <p className="whitespace-pre-wrap leading-relaxed text-[var(--color-fg)]">
+                            {summarize(lead)}
                           </p>
                         </Td>
                       </tr>
@@ -173,38 +166,23 @@ export default async function LeadsAdminPage() {
               </div>
             </div>
           )}
-        </Container>
+        </div>
       </section>
     </>
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  tone: "accent" | "cyan" | "neutral";
-}) {
-  const toneClasses: Record<typeof tone, string> = {
-    accent: "text-[var(--color-accent)] bg-[var(--color-accent-glow)] border-[var(--color-accent)]/15",
-    cyan: "text-[var(--color-cyan)] bg-[var(--color-cyan-glow)] border-[var(--color-cyan)]/15",
-    neutral: "text-[var(--color-fg-muted)] bg-[var(--color-surface-hover)] border-[var(--color-border)]",
-  };
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="glass p-5 flex items-center gap-4">
-      <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl border ${toneClasses[tone]}`}>
+    <div className="flex items-center gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-solid)] p-5 shadow-[var(--shadow-soft)]">
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--color-sky)]/30 bg-[var(--color-sky-soft)] text-[var(--color-sky-hover)]">
         {icon}
       </div>
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
           {label}
         </p>
-        <p className="mt-1 text-2xl font-bold text-[var(--color-fg)]">{value}</p>
+        <p className="mt-1 font-serif text-2xl font-medium text-[var(--color-fg)]">{value}</p>
       </div>
     </div>
   );

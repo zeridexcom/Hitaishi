@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Admin · Leads · EduExpert",
+  title: "Admin · Leads · Hitaishi",
   robots: { index: false, follow: false },
 };
 

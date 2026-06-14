@@ -1,0 +1,53 @@
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { AUDIENCES } from "@/lib/content/hero";
+
+export function AudienceCardsSection() {
+  return (
+    <section
+      id="audiences"
+      className="bg-[var(--color-background-alt)] py-24 md:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-20">
+        <motion.h2
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-3xl text-center font-serif text-3xl font-medium leading-tight tracking-tight text-[var(--color-fg)] md:text-4xl lg:text-5xl"
+        >
+          Built for everyone in the JEE journey.
+        </motion.h2>
+
+        <div className="mt-14 grid gap-6 md:mt-16 md:grid-cols-3 md:gap-8">
+          {AUDIENCES.map((aud, i) => (
+            <motion.div
+              key={aud.href}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Link
+                href={aud.href}
+                className="group flex h-full flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-solid)] p-8 transition-all hover:-translate-y-1 hover:border-[var(--color-sky)]/60 hover:shadow-[var(--shadow-lift)] md:p-10"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-sky)]">
+                  {aud.eyebrow}
+                </p>
+                <h3 className="mt-5 flex-1 font-serif text-xl font-medium leading-snug text-[var(--color-fg)] md:text-2xl">
+                  {aud.title}
+                </h3>
+                <p className="mt-6 text-sm font-medium text-[var(--color-fg)] transition-transform group-hover:translate-x-1">
+                  {aud.label}
+                </p>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
