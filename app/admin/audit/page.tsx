@@ -1,61 +1,66 @@
 import { Shell } from "@/components/Shell";
 import { Card, LinkButton, Pill } from "@/components/ui";
+import { db } from "@/lib/db";
+import { requireRole } from "@/lib/session";
+import { auditLog, users, profiles } from "@/db/schema";
+import { count, desc, eq } from "drizzle-orm";
 
-// TODO(phase-2f): hydrate from auditLog table via Drizzle query in lib/audit.ts
-const filters = {
-  actions: ["All actions", "refund", "access_grant", "mentor_approve", "settings_change", "flag_dismiss", "admin_login"],
-  admins: ["All admins", "Sarah Chen", "Mark Varma", "Amara Okafor"],
-  severity: ["All", "Info", "Warning", "Critical"],
-};
+export const dynamic = "force-dynamic";
 
-const entries = [
-  {
-    id: 1,
-    ts: "2026-02-24 18:42:01 IST",
-    severity: "warn" as const,
-    severityLabel: "Warning",
-    admin: "Sarah Chen",
-    action: "refund",
-    target: "pay_NZ82jKxl92 · Aarav Sharma",
-    ip: "203.0.113.42",
-    metadata: { amount: 14999, before: "captured", after: "refunded" },
-  },
-  {
-    id: 2,
-    ts: "2026-02-24 17:18:33 IST",
-    severity: "primary" as const,
-    severityLabel: "Info",
-    admin: "Mark Varma",
-    action: "mentor_approve",
-    target: "user_xR9pYz · Arjun Mehta",
-    ip: "203.0.113.42",
-    metadata: { status: "pending → active" },
-  },
-  {
-    id: 3,
-    ts: "2026-02-24 16:02:11 IST",
-    severity: "error" as const,
-    severityLabel: "Critical",
-    admin: "Amara Okafor",
-    action: "settings_change",
-    target: "feature_flag.betaDoubtAuction",
-    ip: "203.0.113.42",
-    metadata: { before: false, after: true },
-  },
-  {
-    id: 4,
-    ts: "2026-02-24 09:51:08 IST",
-    severity: "primary" as const,
-    severityLabel: "Info",
-    admin: "Sarah Chen",
-    action: "admin_login",
-    target: "—",
-    ip: "203.0.113.42",
-    metadata: { method: "totp" },
-  },
-];
+type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
-export default function AdminAuditPage() {
+const AUDIT_LIMIT = 50;
+
+const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+function severityFromAction(action: string): { tone: Tone; label: string } {
+  const a = action.toLowerCase();
+  if (
+    a.includes("reject") ||
+    a.includes("ban") ||
+    a.includes("suspend") ||
+    a.includes("delete") ||
+    a.includes("disable")
+  ) {
+    return { tone: "error", label: "Critical" };
+  }
+  if (a.includes("refund") || a.includes("warn") || a.includes("flag")) {
+    return { tone: "warn", label: "Warning" };
+  }
+  return { tone: "primary", label: "Info" };
+}
+
+export default async function AdminAuditPage() {
+  await requireRole("admin");
+
+  const [totalRow] = await db.select({ c: count() }).from(auditLog);
+
+  const entries = await db
+    .select({
+      id: auditLog.id,
+      createdAt: auditLog.createdAt,
+      action: auditLog.action,
+      targetType: auditLog.targetType,
+      targetId: auditLog.targetId,
+      ipAddress: auditLog.ipAddress,
+      actorName: profiles.fullName,
+      actorEmail: users.email,
+    })
+    .from(auditLog)
+    .leftJoin(users, eq(users.id, auditLog.actorId))
+    .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
+    .orderBy(desc(auditLog.createdAt))
+    .limit(AUDIT_LIMIT);
+
+  const totalEntries = Number(totalRow?.c ?? 0);
+
   return (
     <Shell
       role="admin"
@@ -75,25 +80,28 @@ export default function AdminAuditPage() {
           <div>
             <div className="meta mb-1">ACTION TYPE</div>
             <select className="w-full rounded-input border border-rule-strong px-3 py-2 text-sm">
-              {filters.actions.map((a) => (
-                <option key={a}>{a}</option>
-              ))}
+              <option>All actions</option>
+              <option>refund</option>
+              <option>access_grant</option>
+              <option>mentor_approve</option>
+              <option>settings_change</option>
+              <option>flag_dismiss</option>
+              <option>admin_login</option>
             </select>
           </div>
           <div>
             <div className="meta mb-1">ADMIN</div>
             <select className="w-full rounded-input border border-rule-strong px-3 py-2 text-sm">
-              {filters.admins.map((a) => (
-                <option key={a}>{a}</option>
-              ))}
+              <option>All admins</option>
             </select>
           </div>
           <div>
             <div className="meta mb-1">SEVERITY</div>
             <select className="w-full rounded-input border border-rule-strong px-3 py-2 text-sm">
-              {filters.severity.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
+              <option>All</option>
+              <option>Info</option>
+              <option>Warning</option>
+              <option>Critical</option>
             </select>
           </div>
           <div>
@@ -132,33 +140,71 @@ export default function AdminAuditPage() {
             </tr>
           </thead>
           <tbody>
-            {entries.map((e) => (
-              <tr key={e.id} className="border-b border-rule last:border-0 hover:bg-surface-elevated/40">
-                <td className="px-4 py-3 font-mono text-xs text-ink-faint">
-                  {e.ts}
-                </td>
-                <td className="px-4 py-3">
-                  <Pill tone={e.severity}>{e.severityLabel}</Pill>
-                </td>
-                <td className="px-4 py-3 text-sm">{e.admin}</td>
-                <td className="px-4 py-3 font-mono text-xs">{e.action}</td>
-                <td className="px-4 py-3 text-sm">{e.target}</td>
-                <td className="px-4 py-3 hidden md:table-cell font-mono text-xs text-ink-faint">
-                  {e.ip}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <LinkButton href={`/admin/audit/${e.id}`} variant="ghost" size="sm">
-                    JSON
-                  </LinkButton>
+            {entries.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-10 text-center text-ink-faint italic"
+                >
+                  No data yet
                 </td>
               </tr>
-            ))}
+            ) : (
+              entries.map((e: {
+                id: number;
+                createdAt: Date | null;
+                action: string;
+                targetType: string | null;
+                targetId: string | null;
+                ipAddress: string | null;
+                actorName: string | null;
+                actorEmail: string | null;
+              }) => {
+                const sev = severityFromAction(e.action);
+                const admin = e.actorName ?? e.actorEmail ?? "system";
+                const target = e.targetType
+                  ? e.targetId
+                    ? `${e.targetType} ${String(e.targetId).slice(0, 8)}`
+                    : e.targetType
+                  : "—";
+                return (
+                  <tr
+                    key={e.id}
+                    className="border-b border-rule last:border-0 hover:bg-surface-elevated/40"
+                  >
+                    <td className="px-4 py-3 font-mono text-xs text-ink-faint">
+                      {e.createdAt ? DATE_FMT.format(new Date(e.createdAt)) : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Pill tone={sev.tone}>{sev.label}</Pill>
+                    </td>
+                    <td className="px-4 py-3 text-sm">{admin}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{e.action}</td>
+                    <td className="px-4 py-3 text-sm">{target}</td>
+                    <td className="px-4 py-3 hidden md:table-cell font-mono text-xs text-ink-faint">
+                      {e.ipAddress ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <LinkButton
+                        href={`/admin/audit/${e.id}`}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        JSON
+                      </LinkButton>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </Card>
 
       <div className="flex items-center justify-between mt-5">
-        <div className="meta">Showing 1–{entries.length} of 12,482 entries</div>
+        <div className="meta">
+          Showing 1–{entries.length} of {totalEntries.toLocaleString("en-IN")} entries
+        </div>
         <div className="flex items-center gap-2">
           <button className="chip-ghost">← Prev</button>
           <button className="chip-ghost">Next →</button>

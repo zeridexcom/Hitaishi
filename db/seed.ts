@@ -106,6 +106,56 @@ async function main() {
 
       console.log(`✓ ${d.role.padEnd(7)} ${d.email}`);
     }
+
+    const studentId = (
+      await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, "student@demo.hitaishi.app")).limit(1)
+    )[0]?.id;
+    const mentorId = (
+      await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, "mentor@demo.hitaishi.app")).limit(1)
+    )[0]?.id;
+
+    if (studentId && mentorId) {
+      let convId: string;
+      const existing = await db.select({ id: schema.conversations.id })
+        .from(schema.conversations)
+        .innerJoin(schema.conversationParticipants, eq(schema.conversationParticipants.conversationId, schema.conversations.id))
+        .where(eq(schema.conversationParticipants.userId, studentId))
+        .limit(1);
+
+      if (existing[0]) {
+        convId = existing[0].id;
+      } else {
+        const inserted = await db.insert(schema.conversations)
+          .values({ type: "student_mentor", lastMessageAt: new Date() })
+          .returning({ id: schema.conversations.id });
+        convId = inserted[0]!.id;
+        await db.insert(schema.conversationParticipants).values([
+          { conversationId: convId, userId: studentId },
+          { conversationId: convId, userId: mentorId },
+        ]);
+
+        await db.insert(schema.messages).values([
+          {
+            conversationId: convId,
+            senderId: mentorId,
+            body: "Hi Arjun! Welcome to Hitaishi. I'm Priya, your mentor for JEE Main prep. How are you finding the study material so far?",
+          },
+          {
+            conversationId: convId,
+            senderId: studentId,
+            body: "Hi ma'am, thanks! The Physics module is going well but I'm stuck on a few Organic Chemistry problems. Can we schedule a session this week?",
+          },
+          {
+            conversationId: convId,
+            senderId: mentorId,
+            body: "Absolutely. I've opened Tuesday 6pm and Thursday 7pm slots for you. Pick whichever works best, and bring the problems to the session.",
+          },
+        ]);
+        await db.update(schema.conversations).set({ lastMessageAt: new Date() }).where(eq(schema.conversations.id, convId));
+        console.log(`✓ created demo conversation (id: ${convId}) with 3 welcome messages`);
+      }
+    }
+
     console.log("\nseed complete. login with any demo email + password 'demo1234'.");
   } finally {
     await client.end();

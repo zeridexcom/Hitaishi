@@ -1,42 +1,77 @@
+import { redirect } from "next/navigation";
+import { desc, eq } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
-import { Card, CardBody, CardHeader, LinkButton, Pill, Field, Select, Textarea } from "@/components/ui";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  LinkButton,
+  Pill,
+  Field,
+  Select,
+  Textarea,
+} from "@/components/ui";
+import { db } from "@/lib/db";
+import { doubtAnswers, doubts } from "@/db/schema";
+import { getCurrentUser } from "@/lib/session";
 
-// TODO(phase-2f): hydrate from doubts + doubtAnswers tables
+export const dynamic = "force-dynamic";
+
 const tabs = ["All", "Waiting", "Answered", "Resolved"] as const;
 
-const doubts = [
-  {
-    id: "d1",
-    subject: "Physics",
-    status: "waiting" as const,
-    elapsed: "18m",
-    title:
-      "In Q11 of mechanics worksheet — why does friction matter for torque about COM when the wheel isn't slipping?",
-  },
-  {
-    id: "d2",
-    subject: "Math",
-    status: "answered" as const,
-    elapsed: "2h",
-    title:
-      "When picking u and dv in integration by parts, is there a rule of thumb other than LIATE?",
-  },
-  {
-    id: "d3",
-    subject: "Chemistry",
-    status: "resolved" as const,
-    elapsed: "yesterday",
-    title: "Aldol vs Cannizzaro — when does each apply?",
-  },
-];
+type StatusKey = "waiting" | "answered" | "resolved";
 
-const statusTone = {
-  waiting: "warn" as const,
-  answered: "primary" as const,
-  resolved: "neutral" as const,
-};
+function subjectLabel(s: string): string {
+  if (s === "physics") return "Physics";
+  if (s === "chemistry") return "Chemistry";
+  if (s === "maths") return "Math";
+  return s;
+}
 
-export default function StudentDoubtsPage() {
+function statusKeyFromDb(status: string): StatusKey {
+  if (status === "answered") return "answered";
+  if (status === "abandoned") return "resolved";
+  return "waiting";
+}
+
+function statusToneFor(key: StatusKey): "warn" | "primary" | "neutral" {
+  if (key === "waiting") return "warn";
+  if (key === "answered") return "primary";
+  return "neutral";
+}
+
+function elapsedFrom(d: Date, now: Date = new Date()): string {
+  const diff = now.getTime() - d.getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h`;
+  const days = Math.floor(h / 24);
+  if (days === 1) return "yesterday";
+  return `${days}d`;
+}
+
+export default async function StudentDoubtsPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role !== "student") redirect(`/${user.role}/dashboard`);
+
+  const doubtRows = await db
+    .select({
+      id: doubts.id,
+      subject: doubts.subject,
+      topic: doubts.topic,
+      body: doubts.body,
+      status: doubts.status,
+      createdAt: doubts.createdAt,
+      studentRating: doubtAnswers.studentRating,
+    })
+    .from(doubts)
+    .leftJoin(doubtAnswers, eq(doubtAnswers.doubtId, doubts.id))
+    .where(eq(doubts.studentId, user.id))
+    .orderBy(desc(doubts.createdAt));
+
   return (
     <Shell
       role="student"
@@ -77,8 +112,12 @@ export default function StudentDoubtsPage() {
             </div>
             <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <button type="button" className="chip-ghost">📷 Photo</button>
-                <button type="button" className="chip-ghost">🎙 Voice</button>
+                <button type="button" className="chip-ghost">
+                  📷 Photo
+                </button>
+                <button type="button" className="chip-ghost">
+                  🎙 Voice
+                </button>
               </div>
               <div className="flex items-center gap-4">
                 <span className="meta">Avg response: 2h</span>
@@ -106,28 +145,51 @@ export default function StudentDoubtsPage() {
         ))}
       </div>
 
-      <div className="grid gap-3">
-        {doubts.map((d) => (
-          <Card key={d.id}>
-            <CardBody className="flex flex-wrap items-start gap-4">
-              <div className="flex-1 min-w-[260px]">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Pill tone="primary">{d.subject}</Pill>
-                  <Pill tone={statusTone[d.status]}>
-                    {d.status} · {d.elapsed}
-                  </Pill>
-                </div>
-                <div className="font-serif text-base mt-3 leading-snug">
-                  {d.title}
-                </div>
-              </div>
-              <LinkButton href={`/student/doubts/${d.id}`} variant="ghost" size="sm">
-                {d.status === "waiting" ? "Edit doubt →" : "View thread →"}
-              </LinkButton>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
+      {doubtRows.length === 0 ? (
+        <Card>
+          <CardBody>
+            <p className="text-sm text-ink-soft text-center py-6">
+              No doubts yet.
+            </p>
+          </CardBody>
+        </Card>
+      ) : (
+        <div className="grid gap-3">
+          {doubtRows.map((d: any) => {
+            const statusKey = statusKeyFromDb(d.status);
+            const title = d.topic?.trim() || d.body.slice(0, 140);
+            return (
+              <Card key={d.id}>
+                <CardBody className="flex flex-wrap items-start gap-4">
+                  <div className="flex-1 min-w-[260px]">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Pill tone="primary">{subjectLabel(d.subject)}</Pill>
+                      <Pill tone={statusToneFor(statusKey)}>
+                        {statusKey} · {elapsedFrom(d.createdAt)}
+                      </Pill>
+                      {d.studentRating != null && (
+                        <Pill tone="primary">
+                          ★ {d.studentRating}/5
+                        </Pill>
+                      )}
+                    </div>
+                    <div className="font-serif text-base mt-3 leading-snug">
+                      {title}
+                    </div>
+                  </div>
+                  <LinkButton
+                    href={`/student/doubts/${d.id}`}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    {statusKey === "waiting" ? "Edit doubt →" : "View thread →"}
+                  </LinkButton>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </Shell>
   );
 }

@@ -64,7 +64,30 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl text-ink mb-2">8. Contact</h2>
+            <h2 className="font-serif text-xl text-ink mb-2">8. Data handling</h2>
+            <p>This section summarises where your data lives, how long we keep it, and what you can ask us to do with it. It is informational, not a separate contract.</p>
+
+            <h3 className="font-serif text-base text-ink mt-4 mb-1">What we collect</h3>
+            <p>Account profile (name, email, phone, target exam and year), session metadata (title, scheduled time, duration, Meet link, attendance), chat messages, and the contents you submit through in-app forms (doubts, resources, feedback). Payment data is handled by Razorpay — we store only the transaction reference and last-4 / status needed for receipts and refunds.</p>
+
+            <h3 className="font-serif text-base text-ink mt-4 mb-1">Where it is stored</h3>
+            <p>All application data is stored in a managed PostgreSQL database hosted on Supabase. Backups are taken by Supabase on a rolling schedule. Jitsi Meet rooms are peer-to-peer by default — video and audio traffic flow directly between participants and are not recorded by the platform unless a future feature explicitly opts in.</p>
+
+            <h3 className="font-serif text-base text-ink mt-4 mb-1">Encryption</h3>
+            <p>Data is encrypted in transit using TLS 1.2 or higher on all client and server connections. Application data is encrypted at rest using AES-256 on Supabase-managed storage and database volumes. Payment instrument data is never stored on our servers — card details are collected and tokenised directly by Razorpay.</p>
+
+            <h3 className="font-serif text-base text-ink mt-4 mb-1">Retention</h3>
+            <p>Session and chat records are retained for the lifetime of your account so you can review prior conversations and feedback. Chat messages may be retained for a longer period even after a session ends, as defined in our internal data lifecycle policy (see <code className="text-xs bg-surface-elevated px-1 py-0.5 rounded">REALTIME_CHAT_PLAN.md</code>). Account-level records (profile, payment history) are retained for the duration required by tax and accounting law in our operating jurisdiction.</p>
+
+            <h3 className="font-serif text-base text-ink mt-4 mb-1">Third parties</h3>
+            <p>We use a small set of vendors to operate the service: Supabase (Postgres hosting), Razorpay (payments), and Jitsi Meet (peer-to-peer video). We do not sell your data. We do not share it with advertisers. Vendor access is limited to what is necessary to provide their slice of the service and is governed by data-processing terms.</p>
+
+            <h3 className="font-serif text-base text-ink mt-4 mb-1">Your rights</h3>
+            <p>You may request an export of your data or deletion of your account by emailing <a href="mailto:support@hitaishi.app" className="underline">support@hitaishi.app</a>. We respond to verified requests within 30 days. Deletion removes your profile, chat history, and session participation; records we are legally required to keep (e.g. payment receipts) are retained in a restricted form.</p>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-xl text-ink mb-2">9. Contact</h2>
             <p>For questions about these terms, contact legal@hitaishi.app.</p>
           </section>
         </div>

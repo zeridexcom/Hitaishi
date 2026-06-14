@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui";
+import { db } from "@/lib/db";
+import { plans, users, profiles } from "@/db/schema";
+import { count, and, desc, eq } from "drizzle-orm";
+import { formatInr } from "@/lib/format";
+
+export const dynamic = "force-dynamic";
 
 const valueProps = [
   {
@@ -17,27 +23,6 @@ const valueProps = [
   {
     title: "Group doubt sessions",
     body: "Bi-weekly peer learning rooms moderated by a verified mentor.",
-  },
-];
-
-const mentors = [
-  {
-    name: "Priya",
-    branch: "CS, IIT Bombay",
-    focus: "Calculus & integration",
-    note: "40+ mentored students",
-  },
-  {
-    name: "Rahul",
-    branch: "ME, IIT Delhi",
-    focus: "Mechanics & electrodynamics",
-    note: "Top 1% Physics scorer",
-  },
-  {
-    name: "Ananya",
-    branch: "EE, IIT Madras",
-    focus: "Organic chemistry",
-    note: "Repeat-mentor for 3 cohorts",
   },
 ];
 
@@ -60,7 +45,66 @@ const faqs = [
   },
 ];
 
-export default function LandingPage() {
+type MentorCard = {
+  name: string;
+  branch: string;
+  focus: string;
+  note: string;
+};
+
+function focusFromSubjects(subjectsFocus: unknown): string | null {
+  if (!Array.isArray(subjectsFocus) || subjectsFocus.length === 0) return null;
+  const first = subjectsFocus[0];
+  if (!first || typeof first !== "object") return null;
+  const subject = (first as { subject?: unknown }).subject;
+  const level = (first as { level?: unknown }).level;
+  if (typeof subject !== "string") return null;
+  const cap = subject.charAt(0).toUpperCase() + subject.slice(1);
+  return typeof level === "string" && level.trim() ? `${cap} · ${level}` : cap;
+}
+
+function deriveMentorCard(row: {
+  fullName: string | null;
+  institute: string | null;
+  subjectsFocus: unknown;
+  bio: string | null;
+}): MentorCard {
+  const name = row.fullName?.trim() || "Mentor";
+  const branch = row.institute?.trim() || "IIT mentor";
+  const focus = focusFromSubjects(row.subjectsFocus) || "Active mentor";
+  const note = row.bio?.trim() || "Active mentor on Hitaishi";
+  return { name, branch, focus, note };
+}
+
+export default async function LandingPage() {
+  const [counterRow] = await db
+    .select({ value: count() })
+    .from(users)
+    .where(and(eq(users.role, "student"), eq(users.status, "active")));
+  const aspirantCount = counterRow?.value ?? 0;
+
+  const mentorRows = await db
+    .select({
+      fullName: profiles.fullName,
+      institute: profiles.institute,
+      subjectsFocus: profiles.subjectsFocus,
+      bio: profiles.bio,
+    })
+    .from(users)
+    .leftJoin(profiles, eq(profiles.userId, users.id))
+    .where(and(eq(users.role, "mentor"), eq(users.status, "active")))
+    .orderBy(desc(users.createdAt))
+    .limit(3);
+  const mentors: MentorCard[] = mentorRows.map(deriveMentorCard);
+
+  const [topPlan] = await db
+    .select({ priceInr: plans.priceInr })
+    .from(plans)
+    .where(eq(plans.isActive, true))
+    .orderBy(desc(plans.priceInr))
+    .limit(1);
+  const priceLabel = topPlan ? formatInr(topPlan.priceInr) : "—";
+
   return (
     <main className="min-h-screen bg-surface text-ink">
       <header className="border-b border-rule bg-surface-card">
@@ -107,8 +151,9 @@ export default function LandingPage() {
               Pay & Get Access
             </LinkButton>
             <div className="text-sm text-ink-soft">
-              <span className="primary-dot mr-2" /> 128 aspirants in 1:1
-              sessions today
+              <span className="primary-dot mr-2" /> {aspirantCount}{" "}
+              {aspirantCount === 1 ? "aspirant" : "aspirants"} currently
+              enrolled
             </div>
           </div>
           <p className="text-xs text-ink-faint mt-4 font-mono">
@@ -119,7 +164,7 @@ export default function LandingPage() {
           <div className="meta">RESERVE A SLOT</div>
           <div className="font-serif text-2xl mt-2">6-month Full Access</div>
           <div className="font-serif text-5xl text-primary-deep mt-4">
-            ₹14,999
+            {priceLabel}
           </div>
           <div className="text-sm text-ink-soft mt-1">total · taxes included</div>
           <ul className="text-sm text-ink-soft mt-6 space-y-2">
@@ -157,28 +202,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="mentors" className="py-16">
-        <div className="max-w-container mx-auto px-6 md:px-10">
-          <div className="meta">VERIFIED MENTORS</div>
-          <h2 className="font-serif text-3xl md:text-4xl mt-2 max-w-[35ch]">
-            Only top-1,000 JEE Advanced rankers. Audited before they meet you.
-          </h2>
-          <div className="grid md:grid-cols-3 gap-5 mt-10">
-            {mentors.map((m) => (
-              <div
-                key={m.name}
-                className="bg-surface-card border border-rule rounded-card p-6"
-              >
-                <div className="avatar mb-4">{m.name[0]}</div>
-                <div className="font-serif text-xl">{m.name}</div>
-                <div className="text-sm text-ink-soft mt-1">{m.branch}</div>
-                <div className="text-sm mt-3">{m.focus}</div>
-                <div className="meta mt-3">{m.note}</div>
-              </div>
-            ))}
+      {mentors.length > 0 && (
+        <section id="mentors" className="py-16">
+          <div className="max-w-container mx-auto px-6 md:px-10">
+            <div className="meta">VERIFIED MENTORS</div>
+            <h2 className="font-serif text-3xl md:text-4xl mt-2 max-w-[35ch]">
+              Only top-1,000 JEE Advanced rankers. Audited before they meet you.
+            </h2>
+            <div className="grid md:grid-cols-3 gap-5 mt-10">
+              {mentors.map((m) => (
+                <div
+                  key={m.name}
+                  className="bg-surface-card border border-rule rounded-card p-6"
+                >
+                  <div className="avatar mb-4">{m.name[0]}</div>
+                  <div className="font-serif text-xl">{m.name}</div>
+                  <div className="text-sm text-ink-soft mt-1">{m.branch}</div>
+                  <div className="text-sm mt-3">{m.focus}</div>
+                  <div className="meta mt-3">{m.note}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section id="why-hitaishi" className="py-16 bg-surface-elevated">
         <div className="max-w-container mx-auto px-6 md:px-10">
@@ -238,7 +285,7 @@ export default function LandingPage() {
           <div className="bg-surface-card border border-rule rounded-card p-8">
             <div className="meta">6-MONTH FULL ACCESS</div>
             <div className="font-serif text-5xl text-primary-deep mt-2">
-              ₹14,999
+              {priceLabel}
             </div>
             <div className="text-sm text-ink-soft mt-1">
               total · taxes included

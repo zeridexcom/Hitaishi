@@ -1,25 +1,57 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardBody, LinkButton, Pill, Button } from "@/components/ui";
 
-const mockUpcoming = [
-  { id: "u1", title: "Rotational Dynamics \u2014 Advanced Problems", date: "Today \u00b7 5:30 PM", duration: "60 min", student: "Arjun S.", type: "1-on-1" as const, meetLink: "https://meet.google.com/abc-defg-hij" },
-  { id: "u2", title: "Organic Chemistry \u2014 Aldol Reactions", date: "Tomorrow \u00b7 4:00 PM", duration: "45 min", student: "Meera K.", type: "1-on-1" as const },
-  { id: "u3", title: "Weekly Group Doubt Session", date: "Sat \u00b7 10:00 AM", duration: "90 min", student: "5 attending", type: "Group" as const },
-];
+type Attendee = { id: string; name: string };
+type StudentOption = { id: string; name: string; email: string };
+type SessionRow = {
+  id: string;
+  title: string;
+  type: "one_on_one" | "group";
+  status: "scheduled" | "live" | "completed" | "cancelled";
+  scheduledAt: string;
+  durationMinutes: number;
+  meetLink: string | null;
+  attendees: Attendee[];
+  startedAgoMin: number | null;
+  elapsedHms: string | null;
+};
 
-const mockLive = [
-  { id: "l1", title: "Wave Optics \u2014 Young\u2019s Double Slit", date: "Started 12 min ago", duration: "00:12:34", student: "Kabir S.", type: "1-on-1" as const, meetLink: "https://meet.google.com/xyz-uvw-rst" },
-];
+function fmtDate(d: string) {
+  const dt = new Date(d);
+  const today = new Date();
+  const isToday = dt.toDateString() === today.toDateString();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const isTomorrow = dt.toDateString() === tomorrow.toDateString();
+  const time = dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (isToday) return `Today · ${time}`;
+  if (isTomorrow) return `Tomorrow · ${time}`;
+  return `${dt.toLocaleDateString([], { day: "2-digit", month: "short" })} · ${time}`;
+}
 
-const mockPast = [
-  { id: "p1", title: "Thermodynamics \u2014 Practice", date: "22 May 2026", duration: "47 min", student: "Saanvi P.", type: "1-on-1" as const, feedback: 4 },
-  { id: "p2", title: "Calculus \u2014 Integration Clinic", date: "20 May 2026", duration: "55 min", student: "Group (4)", type: "Group" as const, feedback: 5 },
-  { id: "p3", title: "Kinematics Review", date: "18 May 2026", duration: "32 min", student: "Diya R.", type: "1-on-1" as const, feedback: null as number | null },
-];
+function fmtDateShort(d: string) {
+  return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
 
-export function SessionsClient() {
+function attendeesLabel(a: Attendee[], type: string) {
+  if (type === "group") return a.length > 0 ? `${a.length} attending` : "0 attending";
+  return a[0]?.name ?? "TBD";
+}
+
+export function SessionsClient({
+  live,
+  upcoming,
+  past,
+  students,
+}: {
+  live: SessionRow[];
+  upcoming: SessionRow[];
+  past: SessionRow[];
+  students: StudentOption[];
+}) {
   const [showCreate, setShowCreate] = useState(false);
 
   return (
@@ -30,29 +62,38 @@ export function SessionsClient() {
         </Button>
       </div>
 
-      {showCreate && <CreateSessionModal onClose={() => setShowCreate(false)} />}
+      {showCreate && (
+        <CreateSessionModal
+          onClose={() => setShowCreate(false)}
+          students={students}
+        />
+      )}
 
-      {mockLive.length > 0 && (
+      {live.length > 0 && (
         <section className="mb-8">
           <div className="meta mb-3 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-secondary" />
             LIVE NOW
           </div>
           <div className="grid gap-3">
-            {mockLive.map((s) => (
+            {live.map((s) => (
               <Card key={s.id}>
                 <CardBody className="flex flex-wrap items-center gap-4">
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Pill tone="coral">LIVE</Pill>
-                      <Pill tone="primary">{s.type}</Pill>
-                      <span className="font-mono text-xs text-ink-faint">{s.duration}</span>
+                      <Pill tone="primary">{s.type === "group" ? "Group" : "1-on-1"}</Pill>
+                      {s.elapsedHms && (
+                        <span className="font-mono text-xs text-ink-faint">{s.elapsedHms}</span>
+                      )}
                     </div>
                     <div className="font-serif text-lg mt-1">{s.title}</div>
-                    <div className="text-sm text-ink-soft mt-1">{s.student} &middot; {s.date}</div>
+                    <div className="text-sm text-ink-soft mt-1">
+                      {attendeesLabel(s.attendees, s.type)} · {s.startedAgoMin ?? 0}m in
+                    </div>
                   </div>
-                  <LinkButton href={s.meetLink || "#"} size="sm" target="_blank">
-                    Join session &rarr;
+                  <LinkButton href={s.meetLink || `/session/${s.id}`} size="sm" target="_blank">
+                    Join session →
                   </LinkButton>
                 </CardBody>
               </Card>
@@ -63,69 +104,98 @@ export function SessionsClient() {
 
       <section className="mb-8">
         <div className="meta mb-3">UPCOMING</div>
-        <div className="grid gap-3">
-          {mockUpcoming.map((s) => (
-            <Card key={s.id}>
-              <CardBody className="flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[200px]">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Pill tone="neutral">{s.type}</Pill>
-                    <span className="text-xs text-ink-faint">{s.duration}</span>
+        {upcoming.length === 0 ? (
+          <Card>
+            <CardBody>
+              <div className="text-sm text-ink-soft text-center py-6">
+                No upcoming sessions. Click <strong>+ Create session</strong> to schedule one.
+              </div>
+            </CardBody>
+          </Card>
+        ) : (
+          <div className="grid gap-3">
+            {upcoming.map((s) => (
+              <Card key={s.id}>
+                <CardBody className="flex flex-wrap items-center gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Pill tone="neutral">{s.type === "group" ? "Group" : "1-on-1"}</Pill>
+                      <span className="text-xs text-ink-faint">{s.durationMinutes} min</span>
+                    </div>
+                    <div className="font-serif text-lg mt-1">{s.title}</div>
+                    <div className="text-sm text-ink-soft mt-1">
+                      {attendeesLabel(s.attendees, s.type)} · {fmtDate(s.scheduledAt)}
+                    </div>
                   </div>
-                  <div className="font-serif text-lg mt-1">{s.title}</div>
-                  <div className="text-sm text-ink-soft mt-1">{s.student} &middot; {s.date}</div>
-                </div>
-                {s.meetLink ? (
-                  <LinkButton href={s.meetLink} size="sm" variant="ghost" target="_blank">
-                    Join &rarr;
-                  </LinkButton>
-                ) : (
-                  <Pill tone="warn">No link yet</Pill>
-                )}
-              </CardBody>
-            </Card>
-          ))}
-        </div>
+                  {s.meetLink ? (
+                    <LinkButton href={s.meetLink} size="sm" variant="ghost" target="_blank">
+                      Join →
+                    </LinkButton>
+                  ) : (
+                    <Pill tone="warn">No link yet</Pill>
+                  )}
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        )}
       </section>
 
       <section>
         <div className="meta mb-3">PAST SESSIONS</div>
-        <div className="grid gap-3">
-          {mockPast.map((s) => (
-            <Card key={s.id}>
-              <CardBody className="flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[200px]">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Pill tone="neutral">{s.type}</Pill>
-                    <span className="text-xs text-ink-faint">{s.duration}</span>
+        {past.length === 0 ? (
+          <Card>
+            <CardBody>
+              <div className="text-sm text-ink-soft text-center py-6">
+                No past sessions yet.
+              </div>
+            </CardBody>
+          </Card>
+        ) : (
+          <div className="grid gap-3">
+            {past.map((s) => (
+              <Card key={s.id}>
+                <CardBody className="flex flex-wrap items-center gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Pill tone="neutral">{s.type === "group" ? "Group" : "1-on-1"}</Pill>
+                      <span className="text-xs text-ink-faint">{s.durationMinutes} min</span>
+                      <Pill tone={s.status === "cancelled" ? "error" : "neutral"}>{s.status}</Pill>
+                    </div>
+                    <div className="font-serif text-lg mt-1">{s.title}</div>
+                    <div className="text-sm text-ink-soft mt-1">
+                      {attendeesLabel(s.attendees, s.type)} · {fmtDateShort(s.scheduledAt)}
+                    </div>
                   </div>
-                  <div className="font-serif text-lg mt-1">{s.title}</div>
-                  <div className="text-sm text-ink-soft mt-1">{s.student} &middot; {s.date}</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Pill tone={s.feedback ? "primary" : "warn"}>
-                    {s.feedback ? `${s.feedback}/5` : "No feedback"}
-                  </Pill>
                   <LinkButton href={`/session/${s.id}`} variant="ghost" size="sm">
                     Details
                   </LinkButton>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        )}
       </section>
     </>
   );
 }
 
-function CreateSessionModal({ onClose }: { onClose: () => void }) {
+function CreateSessionModal({
+  onClose,
+  students,
+}: {
+  onClose: () => void;
+  students: StudentOption[];
+}) {
+  const router = useRouter();
   const [error, setError] = useState("");
   const [result, setResult] = useState<{ meetLink: string } | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
+  const [sessionType, setSessionType] = useState<"1-on-1" | "Group">("1-on-1");
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const submitting = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function now() {
     const d = new Date();
@@ -139,11 +209,10 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
   const { date: today, time: nowTime } = now();
   const minTime = selectedDate === today ? nowTime : undefined;
 
-  function validateField(name: string, value: string): string {
+  function handleBlur(name: string, value: string) {
+    setTouched((prev) => ({ ...prev, [name]: true }));
     let err = "";
-    if (name === "title" && !value.trim()) {
-      err = "Session title is required";
-    }
+    if (name === "title" && !value.trim()) err = "Session title is required";
     if (name === "date") {
       if (!value) err = "Date is required";
       else if (value < today) err = "Date cannot be in the past";
@@ -153,28 +222,23 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
       else if (selectedDate === today && value < nowTime) err = "Time cannot be in the past";
     }
     setFieldErrors((prev) => ({ ...prev, [name]: err }));
-    return err;
   }
 
-  function handleBlur(name: string, value: string) {
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    validateField(name, value);
-  }
-
-  function handleChange(name: string, value: string) {
-    setFieldErrors((prev) => {
-      const next = { ...prev };
-      if (next[name]) delete next[name];
-      return next;
+  function toggleStudent(id: string) {
+    setSelectedStudentIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (sessionType === "1-on-1") return [id];
+      return [...prev, id];
     });
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting) return;
 
     const data = new FormData(e.currentTarget);
     const title = (data.get("title") as string) ?? "";
-    const sessionType = (data.get("type") as string) ?? "";
+    const sessionTypeValue = (data.get("type") as string) ?? "";
     const date = (data.get("date") as string) ?? "";
     const time = (data.get("time") as string) ?? "";
 
@@ -184,38 +248,40 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
     else if (date < today) errs.date = "Date cannot be in the past";
     if (!time) errs.time = "Time is required";
     else if (date === today && time < nowTime) errs.time = "Time cannot be in the past";
+    if (selectedStudentIds.length === 0) errs.students = "Select at least one student";
+    if (sessionTypeValue === "1-on-1" && selectedStudentIds.length > 1) {
+      errs.students = "1-on-1 sessions can only include one student";
+    }
 
     setFieldErrors(errs);
-    setTouched({ title: true, date: true, time: true });
+    setTouched({ title: true, date: true, time: true, students: true });
+    if (errs.title || errs.date || errs.time || errs.students) return;
 
-    if (errs.title || errs.date || errs.time) return;
-
-    if (submitting.current) return;
-    submitting.current = true;
+    setSubmitting(true);
     setError("");
-
     try {
       const res = await fetch("/api/mentor/sessions/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          type: sessionType === "Group" ? "group" : "one_on_one",
+          type: sessionTypeValue === "Group" ? "group" : "one_on_one",
           scheduledAt: new Date(`${date}T${time}:00+05:30`).toISOString(),
           durationMinutes: 60,
+          studentIds: selectedStudentIds,
         }),
       });
-
       const resData = await res.json();
       if (!resData.success) {
         setError(resData.error ?? "Failed to create session");
       } else {
         setResult(resData.data);
+        router.refresh();
       }
     } catch {
-      setError("Network error \u2014 try again");
+      setError("Network error — try again");
     } finally {
-      submitting.current = false;
+      setSubmitting(false);
     }
   }
 
@@ -244,7 +310,14 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
               <a href={result.meetLink} target="_blank" rel="noopener noreferrer">
                 <Button size="sm">Open Meet room</Button>
               </a>
-              <button onClick={onClose} className="px-4 py-2 text-sm text-ink-soft hover:text-ink">
+              <button
+                type="button"
+                onClick={() => {
+                  setResult(null);
+                  onClose();
+                }}
+                className="px-4 py-2 text-sm text-ink-soft hover:text-ink"
+              >
                 Done
               </button>
             </div>
@@ -266,9 +339,8 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
                   id="session-title"
                   name="title"
                   className={`w-full rounded-input border px-3 py-2 text-sm focus:outline-none ${touched.title && fieldErrors.title ? "border-red-500" : "border-rule-strong focus:border-primary"}`}
-                  placeholder="e.g. Thermodynamics \u2014 Advanced Practice"
+                  placeholder="e.g. Thermodynamics — Advanced Practice"
                   onBlur={(e) => handleBlur("title", e.target.value)}
-                  onChange={(e) => handleChange("title", e.target.value)}
                 />
                 {touched.title && fieldErrors.title && (
                   <p className="text-xs text-red-500 mt-1">{fieldErrors.title}</p>
@@ -286,7 +358,18 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div>
                   <label className="meta block mb-1">Type</label>
-                  <select name="type" className="w-full rounded-input border border-rule-strong px-3 py-2 text-sm focus:outline-none focus:border-primary bg-surface-card">
+                  <select
+                    name="type"
+                    value={sessionType}
+                    onChange={(e) => {
+                      const v = e.target.value as "1-on-1" | "Group";
+                      setSessionType(v);
+                      if (v === "1-on-1" && selectedStudentIds.length > 1) {
+                        setSelectedStudentIds(selectedStudentIds.slice(0, 1));
+                      }
+                    }}
+                    className="w-full rounded-input border border-rule-strong px-3 py-2 text-sm focus:outline-none focus:border-primary bg-surface-card"
+                  >
                     <option value="1-on-1">1-on-1</option>
                     <option value="Group">Group</option>
                   </select>
@@ -302,7 +385,7 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
                     min={today}
                     className={`w-full rounded-input border px-3 py-2 text-sm focus:outline-none ${touched.date && fieldErrors.date ? "border-red-500" : "border-rule-strong focus:border-primary"}`}
                     onBlur={(e) => handleBlur("date", e.target.value)}
-                    onChange={(e) => { setSelectedDate(e.target.value); handleChange("date", e.target.value); }}
+                    onChange={(e) => setSelectedDate(e.target.value)}
                   />
                   {touched.date && fieldErrors.date && (
                     <p className="text-xs text-red-500 mt-1">{fieldErrors.date}</p>
@@ -317,12 +400,47 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
                     min={minTime}
                     className={`w-full rounded-input border px-3 py-2 text-sm focus:outline-none ${touched.time && fieldErrors.time ? "border-red-500" : "border-rule-strong focus:border-primary"}`}
                     onBlur={(e) => handleBlur("time", e.target.value)}
-                    onChange={(e) => handleChange("time", e.target.value)}
                   />
                   {touched.time && fieldErrors.time && (
                     <p className="text-xs text-red-500 mt-1">{fieldErrors.time}</p>
                   )}
                 </div>
+              </div>
+              <div>
+                <label className="meta block mb-1">
+                  {sessionType === "1-on-1" ? "Student *" : "Students *"}
+                </label>
+                {students.length === 0 ? (
+                  <p className="text-xs text-ink-soft border border-dashed border-rule rounded-input px-3 py-2">
+                    You have no active student assignments. Ask an admin to assign students before scheduling a session.
+                  </p>
+                ) : (
+                  <div className="border border-rule rounded-input max-h-40 overflow-y-auto divide-y divide-rule">
+                    {students.map((s) => {
+                      const checked = selectedStudentIds.includes(s.id);
+                      return (
+                        <label
+                          key={s.id}
+                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-surface-elevated text-sm"
+                        >
+                          <input
+                            type={sessionType === "1-on-1" ? "radio" : "checkbox"}
+                            name="studentIds"
+                            value={s.id}
+                            checked={checked}
+                            onChange={() => toggleStudent(s.id)}
+                            className="accent-primary"
+                          />
+                          <span className="flex-1 min-w-0 truncate">{s.name}</span>
+                          <span className="text-xs text-ink-faint truncate">{s.email}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                {touched.students && fieldErrors.students && (
+                  <p className="text-xs text-red-500 mt-1">{fieldErrors.students}</p>
+                )}
               </div>
 
               {error && (
@@ -332,11 +450,11 @@ function CreateSessionModal({ onClose }: { onClose: () => void }) {
               <div className="border-t border-rule pt-4 mt-2">
                 <p className="text-xs text-ink-faint mb-3">
                   A Jitsi Meet link will be auto-generated when you create this session. The Meet room
-                  will be empty &mdash; you are the host and must admit participants.
+                  will be empty — you are the host and must admit participants.
                 </p>
                 <div className="flex items-center gap-3">
-                  <Button type="submit" size="md" className="flex-1">
-                    Generate Meet Link & Create
+                  <Button type="submit" size="md" className="flex-1" disabled={submitting}>
+                    {submitting ? "Creating…" : "Generate Meet Link & Create"}
                   </Button>
                   <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-ink-soft hover:text-ink">
                     Cancel

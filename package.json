@@ -16,9 +16,11 @@
     "db:seed": "tsx --env-file=.env db/seed.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.36.4",
     "next": "14.2.18",
+    "playwright": "^1.60.0",
     "postgres": "^3.4.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",

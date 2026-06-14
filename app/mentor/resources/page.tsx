@@ -1,13 +1,11 @@
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill, Field, Input, Select, Textarea } from "@/components/ui";
+import { db } from "@/lib/db";
+import { resources } from "@/db/schema";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { requireRole } from "@/lib/session";
 
-// TODO(phase-2f): hydrate from resources + resourceShares; the create form should POST to /api/resources
-const tabs = [
-  { key: "all", label: "All", count: 42 },
-  { key: "private", label: "Private", count: 11 },
-  { key: "shared", label: "Shared", count: 28 },
-  { key: "pending", label: "Pending approval", count: 3 },
-];
+export const dynamic = "force-dynamic";
 
 const SCOPES = [
   { value: "private", label: "Private — only me" },
@@ -16,46 +14,84 @@ const SCOPES = [
   { value: "platform", label: "Platform-wide (admin approval)" },
 ];
 
-const resources = [
-  {
-    id: "r1",
-    title: "Intro to Thermodynamics",
-    kind: "PDF",
-    scope: "mentor_cohort",
-    scopeLabel: "My students",
-    sharedAvatars: ["A", "M", "K", "R"],
-    extra: 8,
-    sharedAt: "12 Feb",
-    views: 45,
-    downloads: 12,
-  },
-  {
-    id: "r2",
-    title: "Chemistry — Aldol interactive demo",
-    kind: "Link",
-    scope: "private",
-    scopeLabel: "Private",
-    sharedAvatars: [],
-    extra: 0,
-    sharedAt: "08 Feb",
-    views: 0,
-    downloads: 0,
-  },
-  {
-    id: "r3",
-    title: "Math — calculus framework",
-    kind: "PDF",
-    scope: "platform",
-    scopeLabel: "Platform",
-    sharedAvatars: [],
-    extra: 0,
-    sharedAt: "01 Feb",
-    views: 1240,
-    downloads: 340,
-  },
-];
+const SCOPE_LABEL: Record<string, string> = {
+  private: "Private",
+  per_user: "Individual",
+  mentor_cohort: "My students",
+  platform: "Platform",
+};
 
-export default function MentorResourcesPage() {
+const KIND_LABEL: Record<string, string> = {
+  file: "File",
+  link: "Link",
+};
+
+function formatDate(d: Date): string {
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+}
+
+export default async function MentorResourcesPage() {
+  const user = await requireRole("mentor");
+
+  const [allRow] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(resources)
+    .where(eq(resources.uploaderId, user.id));
+
+  const [privateRow] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(resources)
+    .where(and(eq(resources.uploaderId, user.id), eq(resources.scope, "private")));
+
+  const [sharedRow] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(resources)
+    .where(and(eq(resources.uploaderId, user.id), ne(resources.scope, "private")));
+
+  const [pendingRow] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(resources)
+    .where(
+      and(
+        eq(resources.uploaderId, user.id),
+        eq(resources.scope, "platform"),
+        eq(resources.platformApproved, false),
+      ),
+    );
+
+  const tabs = [
+    { key: "all", label: "All", count: Number(allRow?.c ?? 0) },
+    { key: "private", label: "Private", count: Number(privateRow?.c ?? 0) },
+    { key: "shared", label: "Shared", count: Number(sharedRow?.c ?? 0) },
+    { key: "pending", label: "Pending approval", count: Number(pendingRow?.c ?? 0) },
+  ];
+
+  const rows = await db
+    .select({
+      id: resources.id,
+      title: resources.title,
+      kind: resources.kind,
+      scope: resources.scope,
+      platformApproved: resources.platformApproved,
+      createdAt: resources.createdAt,
+    })
+    .from(resources)
+    .where(eq(resources.uploaderId, user.id))
+    .orderBy(desc(resources.createdAt))
+    .limit(50);
+
+  const resourcesView = rows.map((r: any) => ({
+    id: r.id,
+    title: r.title,
+    kind: KIND_LABEL[r.kind] ?? r.kind,
+    scope: r.scope,
+    scopeLabel: SCOPE_LABEL[r.scope] ?? r.scope,
+    pending: r.scope === "platform" && !r.platformApproved,
+    sharedAt: formatDate(r.createdAt),
+  }));
+
+  const totalCount = Number(allRow?.c ?? 0);
+
   return (
     <Shell
       role="mentor"
@@ -141,73 +177,67 @@ export default function MentorResourcesPage() {
         ))}
       </div>
 
-      <Card className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface-elevated border-b border-rule">
-              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
-                Title
-              </th>
-              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
-                Type
-              </th>
-              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
-                Scope
-              </th>
-              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft hidden md:table-cell">
-                Shared with
-              </th>
-              <th className="px-4 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-soft hidden lg:table-cell">
-                Views / DLs
-              </th>
-              <th className="px-4 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-soft">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {resources.map((r) => (
-              <tr key={r.id} className="border-b border-rule last:border-0">
-                <td className="px-4 py-3 font-medium">{r.title}</td>
-                <td className="px-4 py-3">
-                  <Pill tone="neutral">{r.kind}</Pill>
-                </td>
-                <td className="px-4 py-3">
-                  <Pill tone="primary">{r.scopeLabel}</Pill>
-                </td>
-                <td className="px-4 py-3 hidden md:table-cell">
-                  <div className="flex items-center -space-x-2">
-                    {r.sharedAvatars.map((a) => (
-                      <span
-                        key={a}
-                        className="w-6 h-6 rounded-full bg-primary text-primary-on text-[10px] flex items-center justify-center border-2 border-surface-card"
-                      >
-                        {a}
-                      </span>
-                    ))}
-                    {r.extra > 0 && (
-                      <span className="text-xs text-ink-faint ml-3">
-                        +{r.extra}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right hidden lg:table-cell font-mono text-xs">
-                  {r.views} / {r.downloads}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <LinkButton href="/mentor/resources" variant="ghost" size="sm">
-                    Manage
-                  </LinkButton>
-                </td>
+      {resourcesView.length === 0 ? (
+        <Card>
+          <CardBody>
+            <div className="text-sm text-ink-soft text-center py-6">
+              You haven&apos;t uploaded any resources yet.
+            </div>
+          </CardBody>
+        </Card>
+      ) : (
+        <Card className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-surface-elevated border-b border-rule">
+                <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                  Title
+                </th>
+                <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                  Type
+                </th>
+                <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                  Scope
+                </th>
+                <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft hidden md:table-cell">
+                  Shared on
+                </th>
+                <th className="px-4 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+            </thead>
+            <tbody>
+              {resourcesView.map((r: any) => (
+                <tr key={r.id} className="border-b border-rule last:border-0">
+                  <td className="px-4 py-3 font-medium">{r.title}</td>
+                  <td className="px-4 py-3">
+                    <Pill tone="neutral">{r.kind}</Pill>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Pill tone={r.pending ? "warn" : "primary"}>
+                      {r.pending ? "Pending review" : r.scopeLabel}
+                    </Pill>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell font-mono text-xs text-ink-faint">
+                    {r.sharedAt}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <LinkButton href="/mentor/resources" variant="ghost" size="sm">
+                      Manage
+                    </LinkButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
 
       <div className="mt-5 meta text-center">
-        Showing 1–{resources.length} of 42 resources
+        {totalCount === 0
+          ? "No resources yet"
+          : `Showing 1–${Math.min(resourcesView.length, totalCount)} of ${totalCount} resource${totalCount === 1 ? "" : "s"}`}
       </div>
     </Shell>
   );

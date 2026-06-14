@@ -85,6 +85,7 @@ export const messages = pgTable(
       .notNull(),
     senderId: uuid("sender_id").references(() => users.id).notNull(),
     body: text("body").notNull(),
+    flags: jsonb("flags"),
     attachments: jsonb("attachments"),
     editedAt: timestamp("edited_at", { withTimezone: true }),
     ...ts(),

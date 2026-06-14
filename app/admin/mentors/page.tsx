@@ -1,104 +1,157 @@
 import { Shell } from "@/components/Shell";
 import { Card, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
+import { db } from "@/lib/db";
+import { requireRole } from "@/lib/session";
+import {
+  users,
+  profiles,
+  mentorVerifications,
+  assignments,
+  doubtAnswers,
+  payouts,
+} from "@/db/schema";
+import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 
-// TODO(phase-2f): hydrate from users + mentorVerifications + assignments + payouts
-const pending = [
-  {
-    id: "p1",
-    name: "Arjun Mehta",
-    institute: "IIT Bombay",
-    branch: "CS",
-    jeeRank: 420,
-    appliedAt: "20 Oct 2025",
-    docs: { degree: "ok", id: "ok", scorecard: "ok", linkedin: "pending" } as const,
-  },
-  {
-    id: "p2",
-    name: "Isha Verma",
-    institute: "IIT Delhi",
-    branch: "EE",
-    jeeRank: 812,
-    appliedAt: "22 Oct 2025",
-    docs: { degree: "ok", id: "ok", scorecard: "missing", linkedin: "ok" } as const,
-  },
-  {
-    id: "p3",
-    name: "Vikram Sahu",
-    institute: "IIT Kanpur",
-    branch: "Physics",
-    jeeRank: 1247,
-    appliedAt: "24 Oct 2025",
-    docs: { degree: "ok", id: "ok", scorecard: "ok", linkedin: "ok" } as const,
-  },
-];
+export const dynamic = "force-dynamic";
 
-const active = [
-  {
-    id: "m1",
-    name: "Ananya Rao",
-    institute: "Mechanical · IIT KGP",
-    joined: "12 Aug 2023",
-    students: 31,
-    rating: 5.0,
-    doubts: 2150,
-    earnings: 580000,
-    status: "active" as const,
-  },
-  {
-    id: "m2",
-    name: "Siddharth Jain",
-    institute: "Computer Science · IIT Bombay",
-    joined: "01 Sep 2023",
-    students: 18,
-    rating: 4.7,
-    doubts: 1240,
-    earnings: 340000,
-    status: "active" as const,
-  },
-  {
-    id: "m3",
-    name: "Neha Kapur",
-    institute: "Chemistry · IIT Madras",
-    joined: "15 Nov 2024",
-    students: 6,
-    rating: 4.4,
-    doubts: 410,
-    earnings: 92000,
-    status: "on_break" as const,
-  },
-  {
-    id: "m4",
-    name: "Vikram Singh",
-    institute: "Maths · IIT Roorkee",
-    joined: "01 Mar 2025",
-    students: 0,
-    rating: 3.8,
-    doubts: 12,
-    earnings: 0,
-    status: "suspended" as const,
-  },
-];
+type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
-const docTone = {
+const docTone: Record<"ok" | "pending" | "missing", Tone> = {
   ok: "primary",
   pending: "warn",
   missing: "error",
-} as const;
+};
 
-const statusTone = {
+const statusTone: Record<"pending" | "active" | "suspended" | "banned", Tone> = {
   active: "primary",
-  on_break: "warn",
+  pending: "warn",
   suspended: "error",
-} as const;
+  banned: "error",
+};
 
-const statusLabel = {
+const statusLabel: Record<"pending" | "active" | "suspended" | "banned", string> = {
   active: "Active",
-  on_break: "On break",
+  pending: "Pending",
   suspended: "Suspended",
-} as const;
+  banned: "Banned",
+};
 
-export default function AdminMentorsPage() {
+const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+const INR_FMT = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+
+type DocState = "ok" | "pending" | "missing";
+
+function docsFromVerification(
+  row: { documents: unknown; linkedinUrl: string | null },
+): { degree: DocState; id: DocState; scorecard: DocState; linkedin: DocState } {
+  const docs = (row.documents ?? {}) as Record<string, string | null | undefined>;
+  const pick = (v: string | null | undefined): DocState =>
+    v === "ok" || v === "verified" || v === "present"
+      ? "ok"
+      : v === "missing" || v === "absent" || v === "rejected"
+        ? "missing"
+        : "pending";
+  return {
+    degree: pick(docs.degree),
+    id: pick(docs.id ?? docs.id_card ?? docs.idCard),
+    scorecard: pick(docs.scorecard ?? docs.jee_scorecard),
+    linkedin: row.linkedinUrl ? "ok" : "pending",
+  };
+}
+
+export default async function AdminMentorsPage() {
+  await requireRole("admin");
+
+  const pending = await db
+    .select({
+      id: mentorVerifications.id,
+      userId: mentorVerifications.userId,
+      documents: mentorVerifications.documents,
+      linkedinUrl: mentorVerifications.linkedinUrl,
+      jeeRank: mentorVerifications.jeeRank,
+      createdAt: mentorVerifications.createdAt,
+      name: profiles.fullName,
+      email: users.email,
+      institute: profiles.institute,
+      graduationYear: profiles.graduationYear,
+    })
+    .from(mentorVerifications)
+    .innerJoin(users, eq(users.id, mentorVerifications.userId))
+    .leftJoin(profiles, eq(profiles.userId, mentorVerifications.userId))
+    .where(eq(mentorVerifications.status, "pending"))
+    .orderBy(desc(mentorVerifications.createdAt));
+
+  const active = await db
+    .select({
+      id: users.id,
+      name: profiles.fullName,
+      email: users.email,
+      institute: profiles.institute,
+      graduationYear: profiles.graduationYear,
+      createdAt: users.createdAt,
+      status: users.status,
+    })
+    .from(users)
+    .leftJoin(profiles, eq(profiles.userId, users.id))
+    .where(
+      and(
+        eq(users.role, "mentor"),
+        eq(users.status, "active"),
+        isNull(users.deletedAt),
+      ),
+    )
+    .orderBy(desc(users.createdAt));
+
+  const activeIds = active.map((m: { id: string }) => m.id);
+
+  const studentCountByMentor = new Map<string, number>();
+  const doubtCountByMentor = new Map<string, number>();
+  const earningsByMentor = new Map<string, number>();
+
+  if (activeIds.length) {
+    const studentRows = await db
+      .select({
+        mentorId: assignments.mentorId,
+        c: sql<number>`count(*)::int`,
+      })
+      .from(assignments)
+      .where(eq(assignments.status, "active"))
+      .groupBy(assignments.mentorId);
+    for (const r of studentRows) {
+      if (activeIds.includes(r.mentorId)) {
+        studentCountByMentor.set(r.mentorId, Number(r.c));
+      }
+    }
+
+    const doubtRows = await db
+      .select({
+        answererId: doubtAnswers.answererId,
+        c: sql<number>`count(*)::int`,
+      })
+      .from(doubtAnswers)
+      .groupBy(doubtAnswers.answererId);
+    for (const r of doubtRows) {
+      doubtCountByMentor.set(r.answererId, Number(r.c));
+    }
+
+    const earningsRows = await db
+      .select({
+        userId: payouts.userId,
+        total: sql<number>`coalesce(sum(${payouts.netInr}), 0)::int`,
+      })
+      .from(payouts)
+      .groupBy(payouts.userId);
+    for (const r of earningsRows) {
+      earningsByMentor.set(r.userId, Number(r.total));
+    }
+  }
+
   return (
     <Shell
       role="admin"
@@ -112,37 +165,65 @@ export default function AdminMentorsPage() {
           meta={`VERIFICATION QUEUE · ${pending.length} PENDING`}
           title="Applications awaiting review"
         />
-        <ul>
-          {pending.map((p) => (
-            <li
-              key={p.id}
-              className="px-5 py-5 border-t border-rule first:border-t-0"
-            >
-              <div className="flex flex-wrap items-start gap-4">
-                <div className="avatar !w-12 !h-12 !text-base">
-                  {initials(p.name)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-serif text-lg">{p.name}</div>
-                  <div className="text-sm text-ink-soft mt-1">
-                    {p.institute} · {p.branch} · JEE Adv AIR {p.jeeRank}
+        {pending.length === 0 ? (
+          <div className="px-5 py-6 text-sm text-ink-soft text-center italic">
+            No data yet
+          </div>
+        ) : (
+          <ul>
+            {pending.map((p: {
+            id: string;
+            documents: unknown;
+            linkedinUrl: string | null;
+            jeeRank: number | null;
+            createdAt: Date | null;
+            name: string | null;
+            email: string;
+            institute: string | null;
+            graduationYear: number | null;
+          }) => {
+              const docs = docsFromVerification({
+                documents: p.documents,
+                linkedinUrl: p.linkedinUrl,
+              });
+              const displayName = p.name ?? p.email.split("@")[0];
+              const institute = p.institute ?? "—";
+              const cohort = p.graduationYear ? `Class of ${p.graduationYear}` : "—";
+              return (
+                <li
+                  key={p.id}
+                  className="px-5 py-5 border-t border-rule first:border-t-0"
+                >
+                  <div className="flex flex-wrap items-start gap-4">
+                    <div className="avatar !w-12 !h-12 !text-base">
+                      {initials(displayName)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-serif text-lg">{displayName}</div>
+                      <div className="text-sm text-ink-soft mt-1">
+                        {institute} · {cohort}
+                        {p.jeeRank != null ? ` · JEE Adv AIR ${p.jeeRank}` : ""}
+                      </div>
+                      <div className="meta mt-1">
+                        Applied {p.createdAt ? DATE_FMT.format(new Date(p.createdAt)) : "—"}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <Pill tone={docTone[docs.degree]}>Degree</Pill>
+                        <Pill tone={docTone[docs.id]}>ID card</Pill>
+                        <Pill tone={docTone[docs.scorecard]}>JEE scorecard</Pill>
+                        <Pill tone={docTone[docs.linkedin]}>LinkedIn</Pill>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="chip-ghost">Reject</button>
+                      <button className="chip-cta">Approve →</button>
+                    </div>
                   </div>
-                  <div className="meta mt-1">Applied {p.appliedAt}</div>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <Pill tone={docTone[p.docs.degree]}>Degree</Pill>
-                    <Pill tone={docTone[p.docs.id]}>ID card</Pill>
-                    <Pill tone={docTone[p.docs.scorecard]}>JEE scorecard</Pill>
-                    <Pill tone={docTone[p.docs.linkedin]}>LinkedIn</Pill>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button className="chip-ghost">Reject</button>
-                  <button className="chip-cta">Approve →</button>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Card>
 
       <Card className="overflow-x-auto">
@@ -163,9 +244,6 @@ export default function AdminMentorsPage() {
               <th className="px-4 py-3 text-right text-[11px] font-mono uppercase tracking-wider text-ink-soft">
                 Students
               </th>
-              <th className="px-4 py-3 text-right text-[11px] font-mono uppercase tracking-wider text-ink-soft">
-                Rating
-              </th>
               <th className="px-4 py-3 text-right text-[11px] font-mono uppercase tracking-wider text-ink-soft hidden md:table-cell">
                 Doubts
               </th>
@@ -179,44 +257,83 @@ export default function AdminMentorsPage() {
             </tr>
           </thead>
           <tbody>
-            {active.map((m) => (
-              <tr key={m.id} className="border-b border-rule last:border-0">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="avatar !w-8 !h-8 !text-xs">{initials(m.name)}</div>
-                    <div>
-                      <div className="font-medium">{m.name}</div>
-                      <div className="meta">{m.institute}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 hidden md:table-cell text-ink-soft font-mono text-xs">
-                  {m.joined}
-                </td>
-                <td className="px-4 py-3 text-right">{m.students}</td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-mono">{m.rating.toFixed(1)}</span> ★
-                </td>
-                <td className="px-4 py-3 text-right hidden md:table-cell">{m.doubts.toLocaleString()}</td>
-                <td className="px-4 py-3 text-right hidden lg:table-cell font-mono text-xs">
-                  ₹{m.earnings.toLocaleString("en-IN")}
-                </td>
-                <td className="px-4 py-3">
-                  <Pill tone={statusTone[m.status]}>{statusLabel[m.status]}</Pill>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <LinkButton href={`/admin/mentors/${m.id}`} variant="ghost" size="sm">
-                    Open
-                  </LinkButton>
+            {active.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-10 text-center text-ink-faint italic"
+                >
+                  No data yet
                 </td>
               </tr>
-            ))}
+            ) : (
+              active.map((m: {
+                id: string;
+                name: string | null;
+                email: string;
+                institute: string | null;
+                graduationYear: number | null;
+                createdAt: Date | null;
+                status: "pending" | "active" | "suspended" | "banned";
+              }) => {
+                const displayName = m.name ?? m.email.split("@")[0];
+                const institute = m.institute ?? "—";
+                const cohort = m.graduationYear ? `Class of ${m.graduationYear}` : "—";
+                const studentsN = studentCountByMentor.get(m.id) ?? 0;
+                const doubtsN = doubtCountByMentor.get(m.id) ?? 0;
+                const earnings = earningsByMentor.get(m.id) ?? 0;
+                return (
+                  <tr
+                    key={m.id}
+                    className="border-b border-rule last:border-0"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="avatar !w-8 !h-8 !text-xs">
+                          {initials(displayName)}
+                        </div>
+                        <div>
+                          <div className="font-medium">{displayName}</div>
+                          <div className="meta">
+                            {institute} · {cohort}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell text-ink-soft font-mono text-xs">
+                      {m.createdAt ? DATE_FMT.format(new Date(m.createdAt)) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">{studentsN}</td>
+                    <td className="px-4 py-3 text-right hidden md:table-cell">
+                      {doubtsN.toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-4 py-3 text-right hidden lg:table-cell font-mono text-xs">
+                      ₹{INR_FMT.format(earnings)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Pill tone={statusTone[m.status]}>
+                        {statusLabel[m.status]}
+                      </Pill>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <LinkButton
+                        href={`/admin/mentors/${m.id}`}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Open
+                      </LinkButton>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </Card>
 
       <div className="meta text-center mt-5">
-        Showing 1–{active.length} of 124 mentors
+        Showing 1–{active.length} of {active.length} mentors
       </div>
     </Shell>
   );

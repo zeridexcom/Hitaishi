@@ -1,7 +1,11 @@
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, Field, Input, Pill } from "@/components/ui";
+import { requireRole } from "@/lib/session";
 
-// TODO(phase-2f): persist to a system_config jsonb table; reads default from process.env
+export const dynamic = "force-dynamic";
+
+type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
+
 const featureFlags = [
   { key: "betaDoubtAuction", label: "Beta — doubt auction", value: false, desc: "Mentors bid response times on new doubts." },
   { key: "groupSessions", label: "Group sessions", value: true, desc: "12-student group rooms via Jitsi." },
@@ -9,14 +13,27 @@ const featureFlags = [
   { key: "newOnboarding", label: "New onboarding (S.02 v2)", value: true, desc: "3-step student onboarding with goal capture." },
 ];
 
+function envStatus(name: string, label: string, envKey: string, fallback: { tone: Tone; status: string }) {
+  const has = Boolean(process.env[envKey]);
+  return {
+    name: label,
+    env: envKey,
+    status: has ? "Configured" : "Not configured",
+    tone: (has ? "primary" : fallback.tone) as Tone,
+    lastChecked: "process.env",
+  };
+}
+
 const integrations = [
-  { name: "Razorpay", env: "RAZORPAY_KEY_ID", status: "Connected", tone: "primary" as const, lastChecked: "2 min ago" },
-  { name: "Jitsi Meet", env: "—", status: "Active", tone: "primary" as const, lastChecked: "always" },
-  { name: "MSG91 (SMS)", env: "MSG91_AUTH_KEY", status: "Connected", tone: "primary" as const, lastChecked: "4 min ago" },
-  { name: "Resend (Email)", env: "RESEND_API_KEY", status: "Degraded", tone: "warn" as const, lastChecked: "12 min ago" },
+  envStatus("razorpay", "Razorpay", "RAZORPAY_KEY_ID", { tone: "warn", status: "Not configured" }),
+  { name: "Jitsi Meet", env: "—", status: "Active", tone: "primary" as Tone, lastChecked: "always" },
+  envStatus("msg91", "MSG91 (SMS)", "MSG91_AUTH_KEY", { tone: "warn", status: "Not configured" }),
+  envStatus("resend", "Resend (Email)", "RESEND_API_KEY", { tone: "warn", status: "Not configured" }),
 ];
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  await requireRole("admin");
+
   return (
     <Shell
       role="admin"
@@ -52,23 +69,19 @@ export default function AdminSettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader meta="PRICING" title="Plan amounts (paise)" />
+          <CardHeader meta="PRICING" title="Plan amounts (INR)" />
           <CardBody className="grid gap-4">
-            <Field label="JEE Adv · 6 months">
-              <Input
-                type="number"
-                defaultValue={1499900}
-                step={100}
-              />
+            <Field label="JEE Adv · 6 months" hint="Edit and save — not yet wired to db">
+              <Input type="number" defaultValue="" placeholder="0" step={100} />
             </Field>
-            <Field label="JEE Main · 6 months">
-              <Input type="number" defaultValue={849900} step={100} />
+            <Field label="JEE Main · 6 months" hint="Edit and save — not yet wired to db">
+              <Input type="number" defaultValue="" placeholder="0" step={100} />
             </Field>
             <Field label="Mentor share %">
-              <Input type="number" defaultValue={20} min={0} max={100} />
+              <Input type="number" defaultValue="" min={0} max={100} placeholder="0" />
             </Field>
             <Field label="Refund window (days)">
-              <Input type="number" defaultValue={7} min={0} max={30} />
+              <Input type="number" defaultValue="" min={0} max={30} placeholder="0" />
             </Field>
             <button className="chip-cta mt-2">Save pricing</button>
           </CardBody>
@@ -108,7 +121,7 @@ export default function AdminSettingsPage() {
             <label className="flex items-center justify-between py-2 border-b border-rule">
               <div>
                 <div className="text-sm">IP allowlist on /admin/*</div>
-                <div className="meta mt-0.5">3 IPs whitelisted</div>
+                <div className="meta mt-0.5">—</div>
               </div>
               <input type="checkbox" defaultChecked className="w-10 h-5 accent-primary" />
             </label>
@@ -136,11 +149,11 @@ export default function AdminSettingsPage() {
           <Field label="Tagline">
             <Input defaultValue="Your IIT mentor, every single day until JEE." />
           </Field>
-          <Field label="Live counter override">
+          <Field label="Live counter override" hint="Leave blank for live count">
             <Input
               type="number"
-              defaultValue={128}
-              placeholder="Leave blank for live count"
+              defaultValue=""
+              placeholder="0"
             />
           </Field>
         </CardBody>

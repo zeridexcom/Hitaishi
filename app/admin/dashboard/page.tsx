@@ -1,66 +1,226 @@
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
+import { formatLastSeen } from "@/lib/format";
+import { db } from "@/lib/db";
+import { requireRole } from "@/lib/session";
+import {
+  users,
+  profiles,
+  sessions,
+  subscriptions,
+  plans,
+  mentorVerifications,
+  webhookEvents,
+  conversations,
+  refunds,
+  auditLog,
+} from "@/db/schema";
+import { and, count, desc, eq, gte, isNull, lt } from "drizzle-orm";
 
-// TODO(phase-2f): replace with Drizzle queries against the live tables
-const kpis = [
-  { label: "ACTIVE STUDENTS", value: "247", delta: "+18 this week", tone: "primary" as const },
-  { label: "ACTIVE MENTORS", value: "32", delta: "3 pending verification", tone: "warn" as const },
-  { label: "SESSIONS TODAY", value: "47", delta: "8 live now", tone: "primary" as const },
-  { label: "MRR", value: "₹8.42L", delta: "+12% vs last month", tone: "primary" as const },
-];
+export const dynamic = "force-dynamic";
 
-const alerts = [
-  {
-    id: "a1",
-    severity: "high" as const,
-    title: "3 mentor applications awaiting verification",
-    href: "/admin/mentors",
-  },
-  {
-    id: "a2",
-    severity: "high" as const,
-    title: "2 failed payment webhooks need manual provisioning",
-    href: "/admin/payments",
-  },
-  {
-    id: "a3",
-    severity: "med" as const,
-    title: "1 flagged conversation (off-platform mention)",
-    href: "/admin/sessions",
-  },
-  {
-    id: "a4",
-    severity: "med" as const,
-    title: "Refund request from Arjun · 3 days old",
-    href: "/admin/payments",
-  },
-];
+type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
-const recentActions = [
-  { id: "r1", who: "Sarah Chen", what: "Approved mentor Arjun Mehta", at: "12m ago" },
-  { id: "r2", who: "Mark Varma", what: "Refunded ₹14,999 to Aarav S.", at: "1h ago" },
-  { id: "r3", who: "Amara Okafor", what: "Disabled feature flag betaDoubtAuction", at: "3h ago" },
-];
-
-const liveSessions = [
-  { id: "s1", title: "Rotational mechanics — Priya × Aarav", started: "8 min" },
-  { id: "s2", title: "Mole concept group · 12 students", started: "21 min" },
-  { id: "s3", title: "Wave optics 1:1 — Rahul × Kabir", started: "4 min" },
-];
-
-const health = [
-  { label: "Razorpay webhooks (24h)", status: "Healthy", tone: "primary" as const },
-  { label: "Jitsi session capacity", status: "78 / 200", tone: "primary" as const },
-  { label: "Audit log retention", status: "2 yr policy active", tone: "neutral" as const },
-];
-
-const sevTone = {
-  high: "error" as const,
-  med: "warn" as const,
-  low: "neutral" as const,
+const sevTone: Record<"high" | "med" | "low", Tone> = {
+  high: "error",
+  med: "warn",
+  low: "neutral",
 };
 
-export default function AdminDashboard() {
+const INR_FMT = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+
+export default async function AdminDashboardPage() {
+  await requireRole("admin");
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
+  const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const [activeStudentsRow] = await db
+    .select({ c: count() })
+    .from(users)
+    .where(
+      and(
+        eq(users.role, "student"),
+        eq(users.status, "active"),
+        isNull(users.deletedAt),
+      ),
+    );
+
+  const [activeMentorsRow] = await db
+    .select({ c: count() })
+    .from(users)
+    .where(
+      and(
+        eq(users.role, "mentor"),
+        eq(users.status, "active"),
+        isNull(users.deletedAt),
+      ),
+    );
+
+  const [sessionsTodayRow] = await db
+    .select({ c: count() })
+    .from(sessions)
+    .where(
+      and(
+        gte(sessions.scheduledAt, startOfDay),
+        lt(sessions.scheduledAt, endOfDay),
+      ),
+    );
+
+  const [liveRow] = await db
+    .select({ c: count() })
+    .from(sessions)
+    .where(eq(sessions.status, "live"));
+
+  const mrrRows = await db
+    .select({ price: plans.priceInr })
+    .from(subscriptions)
+    .innerJoin(plans, eq(plans.id, subscriptions.planId))
+    .where(eq(subscriptions.status, "active"));
+  const mrr = mrrRows.reduce((acc: number, r: { price: number }) => acc + r.price, 0);
+
+  const [pendingVerifsRow] = await db
+    .select({ c: count() })
+    .from(mentorVerifications)
+    .where(eq(mentorVerifications.status, "pending"));
+
+  const [failedWebhooksRow] = await db
+    .select({ c: count() })
+    .from(webhookEvents)
+    .where(isNull(webhookEvents.processedAt));
+
+  const [flaggedConvsRow] = await db
+    .select({ c: count() })
+    .from(conversations)
+    .where(eq(conversations.flagged, true));
+
+  const [pendingRefundsRow] = await db
+    .select({ c: count() })
+    .from(refunds)
+    .where(eq(refunds.status, "pending"));
+
+  const auditRows = await db
+    .select({
+      id: auditLog.id,
+      action: auditLog.action,
+      targetType: auditLog.targetType,
+      targetId: auditLog.targetId,
+      createdAt: auditLog.createdAt,
+      actorName: profiles.fullName,
+      actorEmail: users.email,
+    })
+    .from(auditLog)
+    .leftJoin(users, eq(users.id, auditLog.actorId))
+    .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
+    .orderBy(desc(auditLog.createdAt))
+    .limit(10);
+
+  const liveSessions = await db
+    .select({
+      id: sessions.id,
+      title: sessions.title,
+      startedAt: sessions.startedAt,
+    })
+    .from(sessions)
+    .where(eq(sessions.status, "live"))
+    .orderBy(desc(sessions.startedAt))
+    .limit(10);
+
+  const [failed24hRow] = await db
+    .select({ c: count() })
+    .from(webhookEvents)
+    .where(
+      and(
+        isNull(webhookEvents.processedAt),
+        gte(webhookEvents.createdAt, last24h),
+      ),
+    );
+
+  const activeStudents = Number(activeStudentsRow?.c ?? 0);
+  const activeMentors = Number(activeMentorsRow?.c ?? 0);
+  const sessionsToday = Number(sessionsTodayRow?.c ?? 0);
+  const liveCount = Number(liveRow?.c ?? 0);
+  const pendingVerifs = Number(pendingVerifsRow?.c ?? 0);
+  const failedWebhooks = Number(failedWebhooksRow?.c ?? 0);
+  const flaggedConvs = Number(flaggedConvsRow?.c ?? 0);
+  const pendingRefunds = Number(pendingRefundsRow?.c ?? 0);
+  const failed24h = Number(failed24hRow?.c ?? 0);
+
+  const kpis = [
+    {
+      label: "ACTIVE STUDENTS",
+      value: activeStudents.toLocaleString("en-IN"),
+      delta: `${activeStudents} total`,
+    },
+    {
+      label: "ACTIVE MENTORS",
+      value: activeMentors.toLocaleString("en-IN"),
+      delta: `${pendingVerifs} pending verification`,
+      tone: "warn" as Tone,
+    },
+    {
+      label: "SESSIONS TODAY",
+      value: sessionsToday.toLocaleString("en-IN"),
+      delta: `${liveCount} live now`,
+    },
+    {
+      label: "MRR",
+      value: `₹${INR_FMT.format(mrr)}`,
+      delta: `${mrrRows.length} active subscriptions`,
+    },
+  ];
+
+  type Alert = {
+    id: string;
+    severity: "high" | "med";
+    title: string;
+    href: string;
+  };
+  const alerts: Alert[] = [];
+  if (pendingVerifs > 0) {
+    alerts.push({
+      id: "a1",
+      severity: "high",
+      title: `${pendingVerifs} mentor application${pendingVerifs === 1 ? "" : "s"} awaiting verification`,
+      href: "/admin/mentors",
+    });
+  }
+  if (failedWebhooks > 0) {
+    alerts.push({
+      id: "a2",
+      severity: "high",
+      title: `${failedWebhooks} failed payment webhook${failedWebhooks === 1 ? "" : "s"} need manual provisioning`,
+      href: "/admin/payments",
+    });
+  }
+  if (flaggedConvs > 0) {
+    alerts.push({
+      id: "a3",
+      severity: "med",
+      title: `${flaggedConvs} flagged conversation${flaggedConvs === 1 ? "" : "s"} (off-platform mention)`,
+      href: "/admin/sessions",
+    });
+  }
+  if (pendingRefunds > 0) {
+    alerts.push({
+      id: "a4",
+      severity: "med",
+      title: `${pendingRefunds} refund request${pendingRefunds === 1 ? "" : "s"} awaiting approval`,
+      href: "/admin/payments",
+    });
+  }
+
+  const health = [
+    {
+      label: "Razorpay webhooks (24h)",
+      status: failed24h === 0 ? "Healthy" : `${failed24h} failed`,
+      tone: (failed24h === 0 ? "primary" : "error") as Tone,
+    },
+  ];
+
   return (
     <Shell
       role="admin"
@@ -82,23 +242,34 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
         <div className="flex flex-col gap-5">
           <Card>
-            <CardHeader meta="NEEDS YOUR ATTENTION" title={`${alerts.length} open items`} />
-            <ul>
-              {alerts.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex items-center justify-between gap-4 px-5 py-4 border-t border-rule first:border-t-0"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Pill tone={sevTone[a.severity]}>{a.severity}</Pill>
-                    <span className="text-sm">{a.title}</span>
-                  </div>
-                  <LinkButton href={a.href} variant="ghost" size="sm">
-                    Resolve →
-                  </LinkButton>
-                </li>
-              ))}
-            </ul>
+            <CardHeader
+              meta="NEEDS YOUR ATTENTION"
+              title={`${alerts.length} open items`}
+            />
+            {alerts.length === 0 ? (
+              <CardBody>
+                <div className="text-sm text-ink-soft text-center py-4">
+                  No data yet
+                </div>
+              </CardBody>
+            ) : (
+              <ul>
+                {alerts.map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center justify-between gap-4 px-5 py-4 border-t border-rule first:border-t-0"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Pill tone={sevTone[a.severity]}>{a.severity}</Pill>
+                      <span className="text-sm">{a.title}</span>
+                    </div>
+                    <LinkButton href={a.href} variant="ghost" size="sm">
+                      Resolve →
+                    </LinkButton>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
 
           <Card>
@@ -111,41 +282,83 @@ export default function AdminDashboard() {
                 </LinkButton>
               }
             />
-            <ul>
-              {liveSessions.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex items-center justify-between gap-3 px-5 py-3 border-t border-rule first:border-t-0"
-                >
-                  <div>
-                    <div className="text-sm">{s.title}</div>
-                    <div className="meta mt-0.5">started {s.started} ago</div>
-                  </div>
-                  <LinkButton href={`/session/${s.id}`} variant="ghost" size="sm">
-                    Watch silently
-                  </LinkButton>
-                </li>
-              ))}
-            </ul>
+            {liveSessions.length === 0 ? (
+              <CardBody>
+                <div className="text-sm text-ink-soft text-center py-4">
+                  No live sessions
+                </div>
+              </CardBody>
+            ) : (
+              <ul>
+                {liveSessions.map((s: { id: string; title: string; startedAt: Date | null }) => (
+                  <li
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 px-5 py-3 border-t border-rule first:border-t-0"
+                  >
+                    <div>
+                      <div className="text-sm">{s.title}</div>
+                      <div className="meta mt-0.5">
+                        started {s.startedAt ? formatLastSeen(s.startedAt) : "—"} ago
+                      </div>
+                    </div>
+                    <LinkButton
+                      href={`/admin/sessions/${s.id}`}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      Watch silently
+                    </LinkButton>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
         </div>
 
         <div className="flex flex-col gap-5">
           <Card>
-            <CardHeader meta="RECENT ADMIN ACTIONS" title="Last 24 hours" action={<LinkButton href="/admin/audit" variant="ghost" size="sm">All →</LinkButton>} />
-            <ul>
-              {recentActions.map((r) => (
-                <li
-                  key={r.id}
-                  className="px-5 py-3 border-t border-rule first:border-t-0"
-                >
-                  <div className="text-sm">
-                    <span className="font-medium">{r.who}</span> {r.what}
-                  </div>
-                  <div className="meta mt-0.5">{r.at}</div>
-                </li>
-              ))}
-            </ul>
+            <CardHeader
+              meta="RECENT ADMIN ACTIONS"
+              title="Last actions"
+              action={
+                <LinkButton href="/admin/audit" variant="ghost" size="sm">
+                  All →
+                </LinkButton>
+              }
+            />
+            {auditRows.length === 0 ? (
+              <CardBody>
+                <div className="text-sm text-ink-soft text-center py-4">
+                  No data yet
+                </div>
+              </CardBody>
+            ) : (
+              <ul>
+                {auditRows.map((r: { id: number; action: string; targetType: string | null; targetId: string | null; createdAt: Date | null; actorName: string | null; actorEmail: string | null }) => {
+                  const who = r.actorName ?? r.actorEmail ?? "system";
+                  const target = r.targetType
+                    ? r.targetId
+                      ? `${r.targetType} ${String(r.targetId).slice(0, 8)}`
+                      : r.targetType
+                    : "";
+                  return (
+                    <li
+                      key={r.id}
+                      className="px-5 py-3 border-t border-rule first:border-t-0"
+                    >
+                      <div className="text-sm">
+                        <span className="font-medium">{who}</span>{" "}
+                        <span className="font-mono text-xs">{r.action}</span>
+                        {target ? <span className="text-ink-soft"> · {target}</span> : null}
+                      </div>
+                      <div className="meta mt-0.5">
+                        {r.createdAt ? formatLastSeen(r.createdAt) : ""}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </Card>
 
           <Card>
@@ -162,7 +375,12 @@ export default function AdminDashboard() {
               ))}
             </ul>
             <CardBody>
-              <LinkButton href="/admin/settings" variant="ghost" size="md" className="w-full">
+              <LinkButton
+                href="/admin/settings"
+                variant="ghost"
+                size="md"
+                className="w-full"
+              >
                 Open settings →
               </LinkButton>
             </CardBody>

@@ -1,12 +1,19 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
 import { redirect } from "next/navigation";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { getCurrentUser } from "@/lib/session";
 import { PrivacyNoticeBanner } from "@/components/PrivacyNoticeBanner";
 import { SessionRoomClient } from "./SessionRoomClient";
+import { db } from "@/lib/db";
+import { sessions, sessionParticipants, users, profiles } from "@/db/schema";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { sessionId: string };
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function SessionRoomPage({ params }: PageProps) {
   const user = await getCurrentUser();
@@ -15,23 +22,104 @@ export default async function SessionRoomPage({ params }: PageProps) {
     redirect(`/${user.role}/dashboard`);
   }
 
-  // TODO(phase-3f): hydrate from DB — sessions + sessionParticipants + user profiles
-  const session = {
-    id: params.sessionId,
-    title: "Advanced Calculus: Integration by Parts & Series",
-    meetLink: "https://meet.google.com/abc-defg-hij",
-    mentor: { name: "Priya Sharma" },
-    status: "live" as const,
-    elapsedHms: "00:42:15",
-  };
+  if (!UUID_RE.test(params.sessionId)) {
+    return (
+      <main className="min-h-screen bg-[#0c1612] text-white flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="font-serif text-2xl mb-2">Session not found</div>
+          <Link href={`/${user.role}/sessions`} className="text-white/60 underline">
+            Back to sessions
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
-  const participants = [
-    { id: "p1", name: "Priya Sharma", role: "mentor" as const, muted: false, raised: false, primary: true },
-    { id: "p2", name: "Arush V.", role: "student" as const, muted: false, raised: true },
-    { id: "p3", name: "Meera K.", role: "student" as const, muted: false, raised: false },
-    { id: "p4", name: "Rohan S.", role: "student" as const, muted: true, raised: false },
-    { id: "p5", name: "Sarah L.", role: "student" as const, muted: true, raised: false },
+  const sessionRow = await db.query.sessions.findFirst({
+    where: eq(sessions.id, params.sessionId),
+  });
+
+  if (!sessionRow) {
+    return (
+      <main className="min-h-screen bg-[#0c1612] text-white flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="font-serif text-2xl mb-2">Session not found</div>
+          <Link href={`/${user.role}/sessions`} className="text-white/60 underline">
+            Back to sessions
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const isHost = sessionRow.hostId === user.id;
+  const isParticipant = isHost
+    ? true
+    : (await db
+        .select({ sessionId: sessionParticipants.sessionId })
+        .from(sessionParticipants)
+        .where(
+          and(
+            eq(sessionParticipants.sessionId, sessionRow.id),
+            eq(sessionParticipants.userId, user.id),
+          ),
+        )
+        .limit(1)).length > 0;
+
+  if (!isHost && !isParticipant) {
+    redirect(`/${user.role}/sessions`);
+  }
+
+  const hostRow = await db
+    .select({ fullName: profiles.fullName, email: users.email })
+    .from(users)
+    .leftJoin(profiles, eq(profiles.userId, users.id))
+    .where(eq(users.id, sessionRow.hostId))
+    .limit(1);
+  const hostName = hostRow[0]?.fullName ?? hostRow[0]?.email.split("@")[0] ?? "Mentor";
+
+  const participants = await db
+    .select({
+      userId: sessionParticipants.userId,
+      fullName: profiles.fullName,
+      email: users.email,
+      roleInSession: sessionParticipants.roleInSession,
+    })
+    .from(sessionParticipants)
+    .innerJoin(users, eq(users.id, sessionParticipants.userId))
+    .leftJoin(profiles, eq(profiles.userId, users.id))
+    .where(eq(sessionParticipants.sessionId, sessionRow.id));
+
+  const participantList = [
+    {
+      id: sessionRow.hostId,
+      name: hostName,
+      role: "mentor" as const,
+      muted: false,
+      raised: false,
+      primary: true,
+    },
+    ...participants
+      .filter((p: any) => p.userId !== sessionRow.hostId)
+      .map((p: any) => ({
+        id: p.userId,
+        name: p.fullName ?? p.email.split("@")[0],
+        role: "student" as const,
+        muted: false,
+        raised: false,
+      })),
   ];
+
+  const elapsedHms = sessionRow.startedAt
+    ? (() => {
+        const ms = Date.now() - sessionRow.startedAt!.getTime();
+        const total = Math.max(0, Math.floor(ms / 1000));
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      })()
+    : null;
 
   return (
     <main className="min-h-screen bg-[#0c1612] text-white flex flex-col">
@@ -39,15 +127,13 @@ export default async function SessionRoomPage({ params }: PageProps) {
       <header className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-white/60 font-mono">
-            S.08 · {session.status === "live" ? "LIVE SESSION" : "SESSION ROOM"}
+            S.08 · {sessionRow.status === "live" ? "LIVE SESSION" : "SESSION ROOM"}
           </div>
-          <h1 className="font-serif text-lg mt-0.5">{session.title}</h1>
+          <h1 className="font-serif text-lg mt-0.5">{sessionRow.title}</h1>
         </div>
         <div className="flex items-center gap-4">
-          {session.status === "live" && (
-            <span className="font-mono text-sm text-white/70">
-              {session.elapsedHms}
-            </span>
+          {sessionRow.status === "live" && elapsedHms && (
+            <span className="font-mono text-sm text-white/70">{elapsedHms}</span>
           )}
           <Link
             href={`/${user.role}/sessions`}
@@ -59,10 +145,12 @@ export default async function SessionRoomPage({ params }: PageProps) {
       </header>
 
       <SessionRoomClient
-        meetLink={session.meetLink}
-        status={session.status}
-        participants={participants}
-        mentorName={session.mentor.name}
+        sessionId={sessionRow.id}
+        meetLink={sessionRow.meetLink}
+        status={sessionRow.status}
+        participants={participantList}
+        mentorName={hostName}
+        currentUserId={user.id}
       />
     </main>
   );

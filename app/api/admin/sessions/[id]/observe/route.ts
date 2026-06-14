@@ -3,6 +3,7 @@ import { fail, ok } from "@/lib/api";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sessions } from "@/db/schema";
+import { getCurrentUser } from "@/lib/session";
 
 export async function POST(
   _req: NextRequest,
@@ -11,6 +12,14 @@ export async function POST(
   const sessionId = params.id;
   if (!sessionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
     return Response.json(fail("invalid session id"), { status: 400 });
+  }
+
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json(fail("unauthorized"), { status: 401 });
+  }
+  if (user.role !== "admin") {
+    return Response.json(fail("forbidden"), { status: 403 });
   }
 
   try {

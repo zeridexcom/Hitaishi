@@ -12,6 +12,7 @@ type StudentNav =
 type MentorNav =
   | "dashboard"
   | "students"
+  | "chat"
   | "doubts"
   | "sessions"
   | "calendar"
@@ -49,6 +50,7 @@ const NAV = {
   mentor: [
     { key: "dashboard", label: "Dashboard", href: "/mentor/dashboard", icon: "◐" },
     { key: "students", label: "My Students", href: "/mentor/students", icon: "◉" },
+    { key: "chat", label: "Student Chat", href: "/mentor/chat", icon: "✎" },
     { key: "doubts", label: "Doubt Inbox", href: "/mentor/doubts", icon: "?" },
     { key: "sessions", label: "Sessions", href: "/mentor/sessions", icon: "▢" },
     { key: "calendar", label: "Calendar", href: "/mentor/calendar", icon: "▦" },

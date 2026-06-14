@@ -1,5 +1,11 @@
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, Pill } from "@/components/ui";
+import { db } from "@/lib/db";
+import { mentorAvailability, sessions } from "@/db/schema";
+import { and, asc, eq, gte, lt } from "drizzle-orm";
+import { requireRole } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const hours = [
@@ -14,28 +20,34 @@ const hours = [
   "22:00",
 ];
 
-// TODO(phase-2f): hydrate from mentorAvailability + sessions
-type Slot = "off" | "available" | "booked" | "ooo" | "past";
-const slotData: Record<string, Slot> = {
-  "Mon-10:00": "available",
-  "Mon-18:00": "booked",
-  "Mon-20:00": "available",
-  "Tue-10:00": "available",
-  "Tue-16:00": "booked",
-  "Tue-18:00": "available",
-  "Wed-10:00": "ooo",
-  "Wed-12:00": "ooo",
-  "Wed-18:00": "available",
-  "Thu-18:00": "booked",
-  "Thu-20:00": "booked",
-  "Fri-18:00": "available",
-  "Fri-20:00": "available",
-  "Sat-10:00": "booked",
-  "Sat-12:00": "booked",
-  "Sat-14:00": "available",
-  "Sat-16:00": "available",
-  "Sun-10:00": "available",
+const DAY_INDEX_MAP: Record<number, string> = {
+  0: "Sun",
+  1: "Mon",
+  2: "Tue",
+  3: "Wed",
+  4: "Thu",
+  5: "Fri",
+  6: "Sat",
 };
+
+type Slot = "off" | "available" | "booked" | "ooo" | "past";
+
+function startOfWeek(d: Date): Date {
+  const x = new Date(d);
+  const day = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - day);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function endOfWeek(d: Date): Date {
+  const x = startOfWeek(d);
+  x.setDate(x.getDate() + 7);
+  return x;
+}
+
+function hourLabelToInt(label: string): number {
+  return Number(label.slice(0, 2));
+}
 
 const legend: { slot: Slot; label: string; cls: string }[] = [
   { slot: "available", label: "Available", cls: "bg-primary text-primary-on" },
@@ -60,7 +72,104 @@ function slotClass(s: Slot): string {
   }
 }
 
-export default function MentorCalendarPage() {
+function timeStringToMinutes(t: string): number {
+  const [h, m] = t.split(":").map((x) => Number(x));
+  return h * 60 + m;
+}
+
+export default async function MentorCalendarPage() {
+  const user = await requireRole("mentor");
+  const now = new Date();
+  const weekStart = startOfWeek(now);
+  const weekEnd = endOfWeek(now);
+
+  const availabilityRows = await db
+    .select({
+      dayOfWeek: mentorAvailability.dayOfWeek,
+      startTime: mentorAvailability.startTime,
+      endTime: mentorAvailability.endTime,
+    })
+    .from(mentorAvailability)
+    .where(eq(mentorAvailability.mentorId, user.id));
+
+  const weekSessions = await db
+    .select({
+      id: sessions.id,
+      scheduledAt: sessions.scheduledAt,
+      durationMinutes: sessions.durationMinutes,
+      status: sessions.status,
+    })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.hostId, user.id),
+        gte(sessions.scheduledAt, weekStart),
+        lt(sessions.scheduledAt, weekEnd),
+      ),
+    );
+
+  const cellHasBooked = new Set<string>();
+  const bookedByDayHour: Record<string, number> = {};
+  for (const s of weekSessions) {
+    const d = s.scheduledAt;
+    if (d.getTime() < now.getTime()) continue;
+    const dayIdx = (d.getDay() + 6) % 7;
+    const hr = d.getHours();
+    const dayLabel = days[dayIdx];
+    const hourLabel = `${String(hr).padStart(2, "0")}:00`;
+    cellHasBooked.add(`${dayLabel}-${hourLabel}`);
+    const key = `${dayLabel}-${hourLabel}`;
+    bookedByDayHour[key] = (bookedByDayHour[key] ?? 0) + 1;
+  }
+
+  const slotData: Record<string, Slot> = {};
+  let availableCount = 0;
+  let bookedCount = cellHasBooked.size;
+
+  for (const a of availabilityRows) {
+    const dayLabel = DAY_INDEX_MAP[a.dayOfWeek];
+    if (!dayLabel) continue;
+    const startMin = timeStringToMinutes(String(a.startTime));
+    const endMin = timeStringToMinutes(String(a.endTime));
+    for (const h of hours) {
+      const hr = hourLabelToInt(h);
+      const cellStart = hr * 60;
+      const cellEnd = cellStart + 60;
+      if (cellStart >= startMin && cellEnd <= endMin) {
+        const key = `${dayLabel}-${h}`;
+        if (!slotData[key] || slotData[key] === "off") {
+          if (cellHasBooked.has(key)) {
+            slotData[key] = "booked";
+          } else {
+            slotData[key] = "available";
+            availableCount++;
+          }
+        }
+      }
+    }
+  }
+
+  for (const key of cellHasBooked) {
+    if (!slotData[key]) {
+      slotData[key] = "booked";
+    }
+  }
+
+  const totalSlots = availableCount + bookedCount;
+  const fillRate = totalSlots > 0 ? Math.round((bookedCount / totalSlots) * 100) : 0;
+
+  let topDay: string | null = null;
+  let topDayCount = 0;
+  const byDayCount: Record<string, number> = {};
+  for (const [key, count] of Object.entries(bookedByDayHour)) {
+    const day = key.split("-")[0];
+    byDayCount[day] = (byDayCount[day] ?? 0) + count;
+    if (byDayCount[day] > topDayCount) {
+      topDay = day;
+      topDayCount = byDayCount[day];
+    }
+  }
+
   return (
     <Shell
       role="mentor"
@@ -125,19 +234,25 @@ export default function MentorCalendarPage() {
         <CardBody className="flex flex-wrap gap-4">
           <div>
             <div className="meta">SLOTS OFFERED</div>
-            <div className="font-serif text-2xl text-primary-deep">18</div>
+            <div className="font-serif text-2xl text-primary-deep">{availableCount}</div>
           </div>
           <div>
             <div className="meta">SLOTS BOOKED</div>
-            <div className="font-serif text-2xl text-primary-deep">5</div>
+            <div className="font-serif text-2xl text-primary-deep">{bookedCount}</div>
           </div>
           <div>
             <div className="meta">FILL RATE</div>
-            <div className="font-serif text-2xl text-primary-deep">27%</div>
+            <div className="font-serif text-2xl text-primary-deep">{fillRate}%</div>
           </div>
-          <Pill tone="primary" className="ml-auto self-center">
-            Friday — 4 slots booked
-          </Pill>
+          {topDay && topDayCount > 0 ? (
+            <Pill tone="primary" className="ml-auto self-center">
+              {topDay} — {topDayCount} slot{topDayCount === 1 ? "" : "s"} booked
+            </Pill>
+          ) : (
+            <Pill tone="neutral" className="ml-auto self-center">
+              No bookings this week
+            </Pill>
+          )}
         </CardBody>
       </Card>
     </Shell>

@@ -1,7 +1,20 @@
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { plans } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 import { formatInr } from "@/lib/format";
 
-export default function CheckoutPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CheckoutPage() {
+  const [topPlan] = await db
+    .select({ priceInr: plans.priceInr })
+    .from(plans)
+    .where(eq(plans.isActive, true))
+    .orderBy(desc(plans.priceInr))
+    .limit(1);
+  const priceLabel = topPlan ? formatInr(topPlan.priceInr) : "—";
+
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-[480px] w-full flex flex-col gap-6">
@@ -18,7 +31,7 @@ export default function CheckoutPage() {
           <div>
             <div className="meta">JEE Advanced · 6 months</div>
             <div className="serif text-3xl font-bold mt-1">
-              {formatInr(1_499_900)}
+              {priceLabel}
             </div>
           </div>
           <Link href="/" className="chip-ghost">
