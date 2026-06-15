@@ -22,7 +22,7 @@ export async function createSession(userId: string): Promise<string> {
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400000);
   await db.insert(authSessions).values({ userId, sessionToken: token, expiresAt });
 
-  cookies().set(SESSION_COOKIE, token, {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -35,15 +35,16 @@ export async function createSession(userId: string): Promise<string> {
 }
 
 export async function destroySession(): Promise<void> {
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (token) {
     await db.delete(authSessions).where(eq(authSessions.sessionToken, token));
   }
-  cookies().delete(SESSION_COOKIE);
+  cookieStore.delete(SESSION_COOKIE);
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
   const rows = await db

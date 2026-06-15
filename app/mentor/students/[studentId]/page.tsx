@@ -23,12 +23,12 @@ export const dynamic = "force-dynamic";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface PageProps {
-  params: { studentId: string };
+  params: Promise<{ studentId: string }>;
 }
 
 export default async function MentorStudentDetailPage({ params }: PageProps) {
+  const { studentId } = await params;
   const user = await requireRole("mentor");
-  const { studentId } = params;
 
   if (!UUID_RE.test(studentId)) {
     redirect("/mentor/students");

@@ -7,9 +7,9 @@ import { getCurrentUser } from "@/lib/session";
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const sessionId = params.id;
+  const { id: sessionId } = await params;
   if (!sessionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
     return Response.json(fail("invalid session id"), { status: 400 });
   }
