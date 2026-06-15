@@ -67,7 +67,6 @@ export const profiles = pgTable("profiles", {
   graduationYear: integer("graduation_year"),
   onboardingStep: integer("onboarding_step").notNull().default(0),
   onboardingCompletedAt: timestamp("onboarding_completed_at", { withTimezone: true }),
-  payoutDetails: jsonb("payout_details"),
   ...ts(),
 });
 

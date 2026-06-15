@@ -15,7 +15,6 @@ import {
   resources,
   sessionParticipants,
   sessions,
-  subscriptions,
   users,
 } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
@@ -112,7 +111,6 @@ export default async function StudentDashboard() {
     recentAnswers,
     doubtsAnsweredRow,
     resourcesReceivedRow,
-    subscriptionRows,
     lastMessageRow,
     recentResourcesShared,
   ] = await Promise.all([
@@ -165,20 +163,6 @@ export default async function StudentDashboard() {
       .from(resourceShares)
       .where(eq(resourceShares.targetUserId, user.id)),
     db
-      .select({
-        startedAt: subscriptions.startedAt,
-        expiresAt: subscriptions.expiresAt,
-      })
-      .from(subscriptions)
-      .where(
-        and(
-          eq(subscriptions.userId, user.id),
-          eq(subscriptions.status, "active"),
-        ),
-      )
-      .orderBy(desc(subscriptions.startedAt))
-      .limit(1),
-    db
       .select({ body: messages.body, createdAt: messages.createdAt })
       .from(messages)
       .innerJoin(
@@ -218,7 +202,6 @@ export default async function StudentDashboard() {
   const mentorSubjects: string[] = Array.isArray(mentor?.mentorSubjects)
     ? (mentor!.mentorSubjects as string[])
     : [];
-  const activeSubscription = subscriptionRows[0] ?? null;
 
   const mySessionIds = myParticipations.map((p: any) => p.sessionId);
 
@@ -262,33 +245,8 @@ export default async function StudentDashboard() {
 
   const greeting = greetingFor(new Date());
   const examTarget = examTargetLabel(profile?.targetExam, profile?.targetYear);
-  const totalDays = activeSubscription
-    ? Math.max(
-        1,
-        Math.round(
-          (activeSubscription.expiresAt.getTime() -
-            activeSubscription.startedAt.getTime()) /
-            (1000 * 60 * 60 * 24),
-        ),
-      )
-    : 0;
-  const daysUsed = activeSubscription
-    ? Math.max(
-        0,
-        Math.floor(
-          (Date.now() - activeSubscription.startedAt.getTime()) /
-            (1000 * 60 * 60 * 24),
-        ) + 1,
-      )
-    : 0;
-  const pct =
-    activeSubscription && totalDays > 0
-      ? Math.min(100, Math.round((daysUsed / totalDays) * 100))
-      : 0;
 
-  const subtitle = activeSubscription
-    ? `Day ${daysUsed} of ${totalDays} · ${examTarget}`
-    : examTarget;
+  const subtitle = examTarget;
 
   const mentorDisplayName = mentor?.mentorName ?? mentor?.mentorEmail ?? "";
 
@@ -502,25 +460,7 @@ export default async function StudentDashboard() {
         </Card>
       </div>
 
-      {activeSubscription && (
-        <Card className="mt-5 p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <div className="meta">PROGRESS</div>
-              <div className="font-serif text-xl mt-1">
-                {daysUsed} of {totalDays} days · {examTarget}
-              </div>
-            </div>
-            <div className="font-mono text-sm text-primary-deep">{pct}%</div>
-          </div>
-          <div className="h-2 bg-surface-elevated rounded-pill mt-4 relative overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 bg-primary rounded-pill"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        </Card>
-      )}
+      
     </Shell>
   );
 }

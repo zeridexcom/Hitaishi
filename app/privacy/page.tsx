@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           <div>© 2026 Hitaishi</div>
           <div className="flex items-center gap-5">
             <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
+            <span className="text-ink-faint">Terms</span>
             <Link href="/contact">Contact</Link>
           </div>
         </div>

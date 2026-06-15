@@ -16,14 +16,13 @@ type MentorNav =
   | "doubts"
   | "sessions"
   | "calendar"
-  | "resources"
-  | "earnings";
+  | "resources";
 type AdminNav =
   | "dashboard"
   | "students"
   | "mentors"
+  | "chat"
   | "sessions"
-  | "payments"
   | "analytics"
   | "settings"
   | "audit";
@@ -60,8 +59,8 @@ const NAV = {
     { key: "dashboard", label: "Overview", href: "/admin/dashboard", icon: "◐" },
     { key: "students", label: "Students", href: "/admin/students", icon: "◉" },
     { key: "mentors", label: "Mentors", href: "/admin/mentors", icon: "◎" },
+    { key: "chat", label: "Chat", href: "/admin/chat", icon: "✎" },
     { key: "sessions", label: "Sessions", href: "/admin/sessions", icon: "▢" },
-    { key: "payments", label: "Payments", href: "/admin/payments", icon: "₹" },
     { key: "analytics", label: "Analytics", href: "/admin/analytics", icon: "▦" },
     { key: "settings", label: "Settings", href: "/admin/settings", icon: "⚙" },
     { key: "audit", label: "Audit Log", href: "/admin/audit", icon: "📜" },

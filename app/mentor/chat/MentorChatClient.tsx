@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardBody, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
-import { subscribeToConversation, type IncomingMessage } from "@/lib/realtime/client";
+import { subscribeToConversation, subscribeToSidebar, type IncomingMessage } from "@/lib/realtime/client";
 
 export type ConvListItem = {
   id: string;
@@ -133,6 +133,38 @@ export function MentorChatClient({
         if (existing.some((x) => x.id === m.id)) return prev;
         return { ...prev, [m.conversationId]: [...existing, m] };
       });
+      setConvs((prev) => {
+        const existing = prev.find((c) => c.id === m.conversationId);
+        if (!existing) return prev;
+        const updated = { ...existing, lastMessagePreview: m.body, lastMessageAt: m.createdAt, lastMessageSenderId: m.senderId };
+        return [updated, ...prev.filter((c) => c.id !== m.conversationId)];
+      });
+    });
+    return unsub;
+  }, [activeId]);
+
+  useEffect(() => {
+    if (!activeId) return;
+    fetch(`/api/chat/conversations/${activeId}/messages`)
+      .then((r) => r.json())
+      .then((data) => {
+        setMessagesByConv((prev) => ({
+          ...prev,
+          [activeId]: (data.items || []).map((m: any) => ({ id: m.id, senderId: m.senderId, body: m.body, createdAt: m.createdAt })),
+        }));
+      })
+      .catch(() => {});
+  }, [activeId]);
+
+  useEffect(() => {
+    const unsub = subscribeToSidebar((update) => {
+      setConvs((prev) => {
+        const existing = prev.find((c) => c.id === update.conversationId);
+        if (!existing) return prev;
+        const updated = { ...existing, lastMessagePreview: update.preview, lastMessageAt: update.createdAt, lastMessageSenderId: update.senderId };
+        if (update.conversationId === activeId) return prev;
+        return [updated, ...prev.filter((c) => c.id !== update.conversationId)];
+      });
     });
     return unsub;
   }, [activeId]);
@@ -147,6 +179,22 @@ export function MentorChatClient({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [activeMessages.length, activeId]);
+
+  async function handleDelete() {
+    if (!activeId || !active) return;
+    if (!window.confirm(`Delete chat with ${active.otherName}? This will remove it from your sidebar.`)) return;
+    try {
+      const r = await fetch(`/api/chat/conversations/${activeId}/participants`, { method: "DELETE" });
+      if (!r.ok) throw new Error("delete failed");
+      setConvs((prev) => prev.filter((c) => c.id !== activeId));
+      setMessagesByConv((prev) => { const n = { ...prev }; delete n[activeId!]; return n; });
+      const next = convs.find((c) => c.id !== activeId);
+      setActiveId(next?.id ?? null);
+      setShowInfo(false);
+    } catch {
+      // silent
+    }
+  }
 
   async function send() {
     const body = draft.trim();
@@ -171,6 +219,13 @@ export function MentorChatClient({
         body: JSON.stringify({ body }),
       });
       if (!r.ok) throw new Error("send failed");
+      const data = await r.json();
+      setMessagesByConv((prev) => ({
+        ...prev,
+        [activeId]: (prev[activeId] ?? []).map((m) =>
+          m.id === optimistic.id ? { ...m, id: data.id, pending: false } : m
+        ),
+      }));
     } catch {
       setMessagesByConv((prev) => ({ ...prev, [activeId]: (prev[activeId] ?? []).filter((m) => m.id !== optimistic.id) }));
     } finally {
@@ -370,6 +425,14 @@ export function MentorChatClient({
                 Open doubt inbox
               </LinkButton>
             </div>
+          </div>
+          <div className="p-4 border-t border-rule">
+            <button
+              onClick={handleDelete}
+              className="w-full text-sm text-danger hover:text-danger/80 underline underline-offset-2 transition-colors"
+            >
+              Delete chat
+            </button>
           </div>
         </aside>
       )}

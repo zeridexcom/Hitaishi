@@ -10,13 +10,11 @@ const PLACEHOLDER =
   "Analytics requires the events pipeline to be wired — placeholder until then.";
 
 const kpis = [
-  "MRR",
-  "LTV",
-  "CAC",
-  "CHURN",
-  "REFUND %",
   "DOUBT SLA",
   "ATTENDANCE",
+  "SESSION FILL",
+  "MENTOR NPS",
+  "RETENTION",
 ];
 
 export default async function AdminAnalyticsPage() {
@@ -59,7 +57,7 @@ export default async function AdminAnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
         <Card>
-          <CardHeader meta="MONTHLY REVENUE" title="FY 2026 — ₹ in K" />
+          <CardHeader meta="MONTHLY ACTIVE" title="Students & mentors" />
           <CardBody>
             <div className="text-sm text-ink-faint italic py-6 text-center">
               {PLACEHOLDER}

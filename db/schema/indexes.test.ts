@@ -23,22 +23,6 @@ describe("Hot-path indexes from design doc (IX tags)", () => {
     expect(cols).toContain("phone");
   });
 
-  it("subscriptions.expires_at is indexed (auth-check hot path)", () => {
-    expect(indexedColumns(schema.subscriptions)).toContain("expires_at");
-  });
-
-  it("payments: user_id + status are indexed", () => {
-    const cols = indexedColumns(schema.payments);
-    expect(cols).toContain("user_id");
-    expect(cols).toContain("status");
-  });
-
-  it("payouts.user_id + status are indexed", () => {
-    const cols = indexedColumns(schema.payouts);
-    expect(cols).toContain("user_id");
-    expect(cols).toContain("status");
-  });
-
   it("assignments: student_id + mentor_id are indexed", () => {
     const cols = indexedColumns(schema.assignments);
     expect(cols).toContain("student_id");

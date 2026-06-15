@@ -156,6 +156,42 @@ async function main() {
       }
     }
 
+    const adminId = (
+      await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, "admin@demo.hitaishi.app")).limit(1)
+    )[0]?.id;
+
+    async function seedAdminConversation(demoUserId: string | undefined, otherName: string, otherEmail: string, type: "student" | "mentor") {
+      if (!adminId || !demoUserId) return;
+      const cp = schema.conversationParticipants;
+      const adminConvs = await db.select({ convId: cp.conversationId }).from(cp).where(eq(cp.userId, adminId));
+      const demoConvs = await db.select({ convId: cp.conversationId }).from(cp).where(eq(cp.userId, demoUserId));
+      const adminConvIds = new Set(adminConvs.map((r: any) => r.convId));
+      const shared = demoConvs.filter((r: any) => adminConvIds.has(r.convId));
+      if (shared.length > 0) return;
+
+      const inserted = await db.insert(schema.conversations)
+        .values({ type: "student_mentor", lastMessageAt: new Date() })
+        .returning({ id: schema.conversations.id });
+      const cid = inserted[0]!.id;
+      await db.insert(schema.conversationParticipants).values([
+        { conversationId: cid, userId: adminId },
+        { conversationId: cid, userId: demoUserId },
+      ]);
+
+      const welcome = type === "student"
+        ? `Hi Arjun! This is the Hitaishi admin team. We're here to support you throughout your JEE prep journey with Priya. Feel free to reach out anytime if you need help.`
+        : `Hi Priya! This is the Hitaishi admin team. We're monitoring the platform and here to support you and your students. Let us know if you need anything.`;
+
+      await db.insert(schema.messages).values([
+        { conversationId: cid, senderId: adminId, body: welcome },
+      ]);
+      await db.update(schema.conversations).set({ lastMessageAt: new Date() }).where(eq(schema.conversations.id, cid));
+      console.log(`✓ created admin-${type} conversation (id: ${cid})`);
+    }
+
+    await seedAdminConversation(studentId, "Arjun Sharma", "student@demo.hitaishi.app", "student");
+    await seedAdminConversation(mentorId, "Priya Iyer", "mentor@demo.hitaishi.app", "mentor");
+
     console.log("\nseed complete. login with any demo email + password 'demo1234'.");
   } finally {
     await client.end();

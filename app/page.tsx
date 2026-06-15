@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui";
 import { db } from "@/lib/db";
-import { plans, users, profiles } from "@/db/schema";
+import { users, profiles } from "@/db/schema";
 import { count, and, desc, eq } from "drizzle-orm";
-import { formatInr } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -97,13 +96,7 @@ export default async function LandingPage() {
     .limit(3);
   const mentors: MentorCard[] = mentorRows.map(deriveMentorCard);
 
-  const [topPlan] = await db
-    .select({ priceInr: plans.priceInr })
-    .from(plans)
-    .where(eq(plans.isActive, true))
-    .orderBy(desc(plans.priceInr))
-    .limit(1);
-  const priceLabel = topPlan ? formatInr(topPlan.priceInr) : "—";
+  const priceLabel = "—";
 
   return (
     <main className="min-h-screen bg-surface text-ink">
@@ -323,7 +316,7 @@ export default async function LandingPage() {
           <div className="flex items-center gap-5">
             <Link href="/support">Support</Link>
             <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
+            <span className="text-ink-faint">Terms</span>
             <Link href="/contact">Contact</Link>
           </div>
         </div>

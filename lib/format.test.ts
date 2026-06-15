@@ -1,26 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  formatInr,
   formatDayCounter,
   formatTimeUntil,
   formatLastSeen,
   initials,
 } from "./format";
-
-describe("formatInr (paise → display)", () => {
-  it("formats ₹14,999 from 1,499,900 paise", () => {
-    expect(formatInr(1_499_900)).toBe("₹14,999");
-  });
-  it("uses Indian grouping (lakhs)", () => {
-    expect(formatInr(100_000_00)).toBe("₹1,00,000");
-  });
-  it("rounds non-whole rupees to nearest rupee", () => {
-    expect(formatInr(149_950)).toBe("₹1,500");
-  });
-  it("returns ₹0 for zero", () => {
-    expect(formatInr(0)).toBe("₹0");
-  });
-});
 
 describe("formatDayCounter", () => {
   it("returns 'Day 47 of 180' for normal usage", () => {

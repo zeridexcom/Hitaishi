@@ -25,7 +25,6 @@ export const notificationStatusEnum = pgEnum("notification_status", [
   "failed",
 ]);
 export const webhookProviderEnum = pgEnum("webhook_provider", [
-  "razorpay",
   "msg91",
   "resend",
 ]);

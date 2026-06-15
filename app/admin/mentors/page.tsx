@@ -9,7 +9,6 @@ import {
   mentorVerifications,
   assignments,
   doubtAnswers,
-  payouts,
 } from "@/db/schema";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 
@@ -42,8 +41,6 @@ const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
   month: "short",
   year: "numeric",
 });
-
-const INR_FMT = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
 
 type DocState = "ok" | "pending" | "missing";
 
@@ -112,7 +109,6 @@ export default async function AdminMentorsPage() {
 
   const studentCountByMentor = new Map<string, number>();
   const doubtCountByMentor = new Map<string, number>();
-  const earningsByMentor = new Map<string, number>();
 
   if (activeIds.length) {
     const studentRows = await db
@@ -138,17 +134,6 @@ export default async function AdminMentorsPage() {
       .groupBy(doubtAnswers.answererId);
     for (const r of doubtRows) {
       doubtCountByMentor.set(r.answererId, Number(r.c));
-    }
-
-    const earningsRows = await db
-      .select({
-        userId: payouts.userId,
-        total: sql<number>`coalesce(sum(${payouts.netInr}), 0)::int`,
-      })
-      .from(payouts)
-      .groupBy(payouts.userId);
-    for (const r of earningsRows) {
-      earningsByMentor.set(r.userId, Number(r.total));
     }
   }
 
@@ -281,7 +266,6 @@ export default async function AdminMentorsPage() {
                 const cohort = m.graduationYear ? `Class of ${m.graduationYear}` : "—";
                 const studentsN = studentCountByMentor.get(m.id) ?? 0;
                 const doubtsN = doubtCountByMentor.get(m.id) ?? 0;
-                const earnings = earningsByMentor.get(m.id) ?? 0;
                 return (
                   <tr
                     key={m.id}
@@ -308,7 +292,7 @@ export default async function AdminMentorsPage() {
                       {doubtsN.toLocaleString("en-IN")}
                     </td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell font-mono text-xs">
-                      ₹{INR_FMT.format(earnings)}
+                      —
                     </td>
                     <td className="px-4 py-3">
                       <Pill tone={statusTone[m.status]}>

@@ -7,12 +7,9 @@ import {
   users,
   profiles,
   sessions,
-  subscriptions,
-  plans,
   mentorVerifications,
   webhookEvents,
   conversations,
-  refunds,
   auditLog,
 } from "@/db/schema";
 import { and, count, desc, eq, gte, isNull, lt } from "drizzle-orm";
@@ -26,8 +23,6 @@ const sevTone: Record<"high" | "med" | "low", Tone> = {
   med: "warn",
   low: "neutral",
 };
-
-const INR_FMT = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
 
 export default async function AdminDashboardPage() {
   await requireRole("admin");
@@ -75,12 +70,7 @@ export default async function AdminDashboardPage() {
     .from(sessions)
     .where(eq(sessions.status, "live"));
 
-  const mrrRows = await db
-    .select({ price: plans.priceInr })
-    .from(subscriptions)
-    .innerJoin(plans, eq(plans.id, subscriptions.planId))
-    .where(eq(subscriptions.status, "active"));
-  const mrr = mrrRows.reduce((acc: number, r: { price: number }) => acc + r.price, 0);
+  const mrr = 0;
 
   const [pendingVerifsRow] = await db
     .select({ c: count() })
@@ -97,10 +87,7 @@ export default async function AdminDashboardPage() {
     .from(conversations)
     .where(eq(conversations.flagged, true));
 
-  const [pendingRefundsRow] = await db
-    .select({ c: count() })
-    .from(refunds)
-    .where(eq(refunds.status, "pending"));
+  const pendingRefunds = 0;
 
   const auditRows = await db
     .select({
@@ -146,7 +133,6 @@ export default async function AdminDashboardPage() {
   const pendingVerifs = Number(pendingVerifsRow?.c ?? 0);
   const failedWebhooks = Number(failedWebhooksRow?.c ?? 0);
   const flaggedConvs = Number(flaggedConvsRow?.c ?? 0);
-  const pendingRefunds = Number(pendingRefundsRow?.c ?? 0);
   const failed24h = Number(failed24hRow?.c ?? 0);
 
   const kpis = [
@@ -168,8 +154,8 @@ export default async function AdminDashboardPage() {
     },
     {
       label: "MRR",
-      value: `₹${INR_FMT.format(mrr)}`,
-      delta: `${mrrRows.length} active subscriptions`,
+      value: `₹0`,
+      delta: `0 active subscriptions`,
     },
   ];
 
@@ -188,14 +174,6 @@ export default async function AdminDashboardPage() {
       href: "/admin/mentors",
     });
   }
-  if (failedWebhooks > 0) {
-    alerts.push({
-      id: "a2",
-      severity: "high",
-      title: `${failedWebhooks} failed payment webhook${failedWebhooks === 1 ? "" : "s"} need manual provisioning`,
-      href: "/admin/payments",
-    });
-  }
   if (flaggedConvs > 0) {
     alerts.push({
       id: "a3",
@@ -204,18 +182,9 @@ export default async function AdminDashboardPage() {
       href: "/admin/sessions",
     });
   }
-  if (pendingRefunds > 0) {
-    alerts.push({
-      id: "a4",
-      severity: "med",
-      title: `${pendingRefunds} refund request${pendingRefunds === 1 ? "" : "s"} awaiting approval`,
-      href: "/admin/payments",
-    });
-  }
-
   const health = [
     {
-      label: "Razorpay webhooks (24h)",
+      label: "Webhooks (24h)",
       status: failed24h === 0 ? "Healthy" : `${failed24h} failed`,
       tone: (failed24h === 0 ? "primary" : "error") as Tone,
     },

@@ -8,12 +8,7 @@ describe("Drizzle schema — domain coverage (25 tables)", () => {
     "profiles",
     "mentorVerifications",
     "authSessions",
-    // D.02 Plans & Payments (5)
-    "plans",
-    "subscriptions",
-    "payments",
-    "refunds",
-    "payouts",
+    // D.02 Plans & Payments — removed
     // D.03 Mentorship (4)
     "assignments",
     "conversations",
@@ -43,8 +38,8 @@ describe("Drizzle schema — domain coverage (25 tables)", () => {
     expect((schema as Record<string, unknown>)[name]).toBeDefined();
   });
 
-  it("exports exactly 25 tables", () => {
-    expect(expected.length).toBe(25);
+  it("exports exactly 20 tables", () => {
+    expect(expected.length).toBe(20);
   });
 
   it("users table has required columns", () => {
@@ -52,10 +47,6 @@ describe("Drizzle schema — domain coverage (25 tables)", () => {
     for (const col of ["id", "email", "phone", "passwordHash", "role", "status"]) {
       expect(cols).toContain(col);
     }
-  });
-
-  it("payments stores amount in paise (integer)", () => {
-    expect(schema.payments.amountInr.dataType).toBe("number");
   });
 
   it("webhookEvents.externalId is unique for idempotency", () => {

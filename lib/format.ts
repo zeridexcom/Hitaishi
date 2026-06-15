@@ -1,10 +1,3 @@
-const INR_FMT = new Intl.NumberFormat("en-IN");
-
-export function formatInr(paise: number): string {
-  const rupees = Math.round(paise / 100);
-  return `₹${INR_FMT.format(rupees)}`;
-}
-
 export function formatDayCounter(day: number, total: number): string {
   const clamped = Math.max(1, Math.min(day, total));
   return `Day ${clamped} of ${total}`;

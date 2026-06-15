@@ -31,6 +31,19 @@ export function subscribeToConversation(
   const channel: RealtimeChannel = c
     .channel(`messages-conv-${conversationId}`)
     .on(
+      "broadcast",
+      { event: "message:new" },
+      (payload) => {
+        onMessage({
+          id: payload.id,
+          conversationId: payload.conversation_id,
+          senderId: payload.sender_id,
+          body: payload.body,
+          createdAt: payload.created_at,
+        });
+      },
+    )
+    .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
       (payload) => {
@@ -62,6 +75,33 @@ export function subscribeToConversationList(
       { event: "*", schema: "public", table: "messages" },
       () => onChange(),
     )
+    .subscribe();
+  return () => {
+    c.removeChannel(channel);
+  };
+}
+
+export type SidebarUpdate = {
+  conversationId: string;
+  preview: string;
+  senderId: string;
+  createdAt: string;
+};
+
+export function subscribeToSidebar(
+  onUpdate: (update: SidebarUpdate) => void,
+): () => void {
+  const c = getClient();
+  const channel = c
+    .channel("sidebar-updates")
+    .on("broadcast", { event: "sidebar:update" }, (payload) => {
+      onUpdate({
+        conversationId: payload.conversation_id,
+        preview: payload.preview,
+        senderId: payload.sender_id,
+        createdAt: payload.created_at,
+      });
+    })
     .subscribe();
   return () => {
     c.removeChannel(channel);

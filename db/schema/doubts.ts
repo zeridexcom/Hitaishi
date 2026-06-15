@@ -42,7 +42,6 @@ export const doubts = pgTable(
     claimedBy: uuid("claimed_by").references(() => users.id),
     claimedAt: timestamp("claimed_at", { withTimezone: true }),
     status: doubtStatusEnum("status").notNull().default("open"),
-    payoutInr: integer("payout_inr").notNull().default(0),
     ...ts(),
   },
   (t) => ({

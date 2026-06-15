@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hitaishi · Sprint 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --s:#0c1210;
+  --sc:#141d19;
+  --se:#1a2621;
+  --sd:#222f29;
+  --i:#e2e8e4;
+  --is:#9aafa3;
+  --if:#5c7467;
+  --p:#3b9d72;
+  --ph:#2d7d5a;
+  --ps:#1a3d2e;
+  --pd:#4bcb92;
+  --op:#0c1210;
+  --sec:#e87b5a;
+  --secs:#4a2016;
+  --r:#1f2d26;
+  --rs:#2a3d33;
+  --e:#ff6b6b;
+  --es:#3a1515;
+  --fs:"Fraunces",Georgia,serif;
+  --fn:"Inter",system-ui,sans-serif;
+  --fm:"JetBrains Mono",ui-monospace,monospace;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--fn);background:var(--s);color:var(--i);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:3rem 5rem;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0a100d 0%,#0f1a14 40%,#0c1210 100%);
+}
+.cover::before{
+  content:'';position:absolute;top:-30%;right:-10%;
+  width:70vmin;height:70vmin;
+  background:radial-gradient(circle,rgba(59,157,114,0.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+.cover::after{
+  content:'';position:absolute;bottom:-20%;left:-5%;
+  width:50vmin;height:50vmin;
+  background:radial-gradient(circle,rgba(232,123,90,0.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.cover-inner{position:relative;z-index:1;max-width:1300px;margin:0 auto;width:100%}
+.cover h1{
+  font-family:var(--fs);font-size:clamp(3rem,6vw,5.5rem);font-weight:600;
+  letter-spacing:-0.03em;line-height:1.05;color:var(--i);margin-bottom:0.5rem;
+}
+.cover h1 .hl{color:var(--pd)}
+.cover h1 .hl2{color:var(--sec)}
+.cover .sub{
+  font-size:1.05rem;color:var(--is);line-height:1.7;max-width:75ch;margin-bottom:1.5rem;
+}
+.cover-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.25rem;max-width:650px}
+.cover-metrics > div{
+  background:rgba(20,29,25,0.8);backdrop-filter:blur(8px);
+  border:1px solid var(--r);border-radius:10px;padding:0.9rem 1rem;text-align:center;
+}
+.cover-metrics .n{font-family:var(--fs);font-size:1.8rem;font-weight:600;line-height:1}
+.cover-metrics .n.p{color:var(--pd)}
+.cover-metrics .n.s{color:var(--sec)}
+.cover-metrics .l{font-family:var(--fm);font-size:0.55rem;letter-spacing:0.1em;color:var(--if);text-transform:uppercase;margin-top:0.1rem}
+.cover-bottom{display:flex;gap:1.5rem;flex-wrap:wrap}
+.cover-bottom span{font-family:var(--fm);font-size:0.65rem;color:var(--is);display:flex;align-items:center;gap:0.4rem}
+.cover-bottom span .d{width:6px;height:6px;border-radius:50%;display:inline-block}
+.cover-bottom span .d.g{background:var(--pd)}
+.cover-bottom span .d.c{background:var(--sec)}
+
+.slide{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:2.5rem 4rem;position:relative;overflow:hidden;
+}
+.slide-inner{position:relative;z-index:1;max-width:1300px;margin:0 auto;width:100%}
+.snum{
+  position:absolute;bottom:1rem;right:2.5rem;
+  font-family:var(--fm);font-size:0.6rem;color:var(--if);letter-spacing:0.1em;
+}
+
+.day-hdr{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.day-hdr .badge{
+  font-family:var(--fm);font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;
+  padding:0.35rem 0.85rem;border-radius:9999px;font-weight:500;white-space:nowrap;
+}
+.day-hdr .badge.g{background:var(--ps);color:var(--pd)}
+.day-hdr .badge.c{background:var(--secs);color:var(--sec)}
+.day-hdr h2{font-family:var(--fs);font-size:clamp(1.4rem,2.5vw,2.2rem);font-weight:600;letter-spacing:-0.02em;line-height:1.1;color:var(--i)}
+.day-hdr .stat{
+  margin-left:auto;font-family:var(--fm);font-size:0.6rem;
+  color:var(--if);display:flex;align-items:center;gap:0.3rem;
+}
+
+/* DAY 1 */
+.d1{background:linear-gradient(160deg,#0c1210 0%,#0f1814 100%)}
+.d1-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:0.75rem}
+.d1-card{
+  background:var(--sc);border:1px solid var(--r);border-radius:12px;padding:1.25rem;
+  position:relative;overflow:hidden;
+}
+.d1-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--p),var(--sec));
+}
+.d1-card .icn{font-size:1.5rem;margin-bottom:0.5rem}
+.d1-card h4{font-family:var(--fs);font-size:1rem;font-weight:500;color:var(--i);margin-bottom:0.25rem}
+.d1-card p{font-size:0.72rem;color:var(--is);line-height:1.5;margin-bottom:0.5rem}
+.d1-card .tags{display:flex;gap:0.3rem;flex-wrap:wrap}
+.d1-card .tags span{
+  font-family:var(--fm);font-size:0.5rem;padding:0.15rem 0.4rem;
+  border-radius:4px;background:var(--ps);color:var(--pd);letter-spacing:0.04em;
+}
+.d1-flow{display:flex;align-items:center;justify-content:center;gap:0.5rem;margin:0.5rem 0;flex-wrap:wrap}
+.d1-flow span{
+  font-family:var(--fm);font-size:0.55rem;color:var(--is);
+  background:var(--sd);padding:0.25rem 0.6rem;border-radius:4px;
+}
+.d1-flow .ar{color:var(--pd);font-size:1rem}
+
+/* DAY 2 */
+.d2{background:linear-gradient(200deg,#0c1210 0%,#120f14 100%)}
+.d2-bifold{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.d2-state-machine{background:var(--sc);border:1px solid var(--r);border-radius:12px;padding:1.25rem}
+.d2-states{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem}
+.d2-state{
+  flex:1;min-width:100px;text-align:center;
+  padding:0.6rem 0.5rem;border-radius:8px;font-size:0.65rem;font-weight:500;
+  font-family:var(--fm);
+}
+.d2-state.pending{background:#2a2510;color:#fbbf24}
+.d2-state.active{background:var(--ps);color:var(--pd)}
+.d2-state.done{background:var(--secs);color:var(--sec)}
+.d2-state .arr{display:block;font-size:0.7rem;color:var(--if);margin-top:0.2rem}
+.d2-features{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.5rem}
+.d2-feat{
+  background:var(--sc);border:1px solid var(--r);border-radius:8px;padding:0.75rem;
+  font-size:0.65rem;color:var(--is);display:flex;align-items:center;gap:0.4rem;
+}
+.d2-feat .ck{color:var(--pd);font-weight:600;font-size:0.8rem}
+
+/* DAY 3 */
+.d3{background:linear-gradient(220deg,#0c1210 0%,#0f0f14 100%)}
+.d3-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;margin-bottom:0.75rem}
+.d3-metric{
+  background:var(--sc);border:1px solid var(--r);border-radius:10px;padding:1rem;
+  position:relative;overflow:hidden;
+}
+.d3-metric .bar{
+  position:absolute;bottom:0;left:0;right:0;height:3px;
+}
+.d3-metric .bar.p{background:var(--p)}
+.d3-metric .bar.s{background:var(--sec)}
+.d3-metric .bar.n{background:var(--if)}
+.d3-metric .n{font-family:var(--fs);font-size:1.5rem;font-weight:600;line-height:1}
+.d3-metric .n.p{color:var(--pd)}
+.d3-metric .n.s{color:var(--sec)}
+.d3-metric .l{font-family:var(--fm);font-size:0.55rem;letter-spacing:0.08em;color:var(--if);text-transform:uppercase;margin-top:0.15rem}
+.d3-compare{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.d3-ba{
+  background:var(--sc);border-radius:10px;padding:1rem;
+  border:1px solid var(--r);
+}
+.d3-ba.l{border-left:3px solid var(--sec)}
+.d3-ba.r{border-left:3px solid var(--p)}
+.d3-ba .ttl{
+  font-family:var(--fm);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:0.4rem;font-weight:600;
+}
+.d3-ba.l .ttl{color:var(--sec)}
+.d3-ba.r .ttl{color:var(--pd)}
+.d3-ba ul{list-style:none}
+.d3-ba ul li{
+  font-size:0.65rem;color:var(--is);padding:0.15rem 0;padding-left:0.75rem;
+  position:relative;line-height:1.4;
+}
+.d3-ba ul li::before{content:'·';position:absolute;left:0;color:var(--if)}
+
+/* DAY 4 */
+.d4{background:linear-gradient(140deg,#0c1210 0%,#0a1410 100%)}
+.d4-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem}
+.d4-c{
+  background:var(--sc);border:1px solid var(--r);border-radius:12px;
+  padding:0 0 0.75rem 0;overflow:hidden;
+}
+.d4-c .top{
+  padding:0.75rem 1rem 0.5rem;display:flex;align-items:center;gap:0.5rem;
+  border-bottom:1px solid var(--r);
+}
+.d4-c .top .i{font-size:1rem}
+.d4-c .top .n{font-weight:600;font-size:0.8rem;color:var(--i)}
+.d4-c .top .ln{font-family:var(--fm);font-size:0.55rem;color:var(--if);margin-left:auto}
+.d4-c .body{padding:0.5rem 1rem}
+.d4-c .body .s{font-family:var(--fs);font-size:1.3rem;font-weight:600;color:var(--pd);line-height:1}
+.d4-c .body .l{font-size:0.6rem;color:var(--is)}
+.d4-c .body .b-list{display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.4rem}
+.d4-c .body .b-list span{
+  font-family:var(--fm);font-size:0.5rem;padding:0.1rem 0.35rem;
+  background:var(--ps);border-radius:3px;color:var(--pd);
+}
+
+/* DAY 5 */
+.d5{background:linear-gradient(180deg,#0c1210 0%,#140f0f 100%)}
+.d5-bifold{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.d5-card{
+  background:var(--sc);border:1px solid var(--r);border-radius:12px;
+  padding:1rem 1.25rem;
+}
+.d5-card .ttl-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem}
+.d5-card .ttl-row h4{font-family:var(--fs);font-size:0.95rem;font-weight:500;color:var(--i)}
+.d5-card .ttl-row .chips{display:flex;gap:0.3rem}
+.d5-card .ttl-row .chips span{
+  font-family:var(--fm);font-size:0.45rem;padding:0.15rem 0.35rem;
+  border-radius:3px;font-weight:500;
+}
+.d5-card .ttl-row .chips .add{background:var(--ps);color:var(--pd)}
+.d5-card .ttl-row .chips .del{background:var(--secs);color:var(--sec)}
+.d5-card ul{list-style:none}
+.d5-card ul li{
+  font-size:0.65rem;color:var(--is);padding:0.2rem 0;padding-left:0.75rem;
+  position:relative;line-height:1.4;
+}
+.d5-card ul li::before{content:'›';position:absolute;left:0;color:var(--pd);font-weight:600}
+.d5-bar{display:flex;height:28px;border-radius:6px;overflow:hidden;margin:0.5rem 0}
+.d5-bar .seg{display:flex;align-items:center;justify-content:center;font-size:0.5rem;font-family:var(--fm);color:var(--op);font-weight:500}
+.d5-bar .seg.add{background:var(--p);flex:46}
+.d5-bar .seg.mod{background:var(--ph);flex:37}
+.d5-bar .seg.del{background:var(--sec);flex:17}
+
+/* DAY 6 */
+.d6{background:linear-gradient(120deg,#140f0f 0%,#0c1210 60%)}
+.d6-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem}
+.d6-pile{
+  background:var(--sc);border:1px solid var(--r);border-radius:10px;padding:0.75rem;
+}
+.d6-pile .pt{
+  font-family:var(--fm);font-size:0.55rem;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--if);margin-bottom:0.35rem;
+}
+.d6-pile .item{
+  display:flex;align-items:center;gap:0.4rem;
+  padding:0.2rem 0.3rem;border-radius:4px;
+  font-family:var(--fm);font-size:0.6rem;color:var(--is);
+}
+.d6-pile .item:nth-child(odd){background:var(--se)}
+.d6-pile .item .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.d6-pile .item .dot.del{background:var(--sec)}
+.d6-pile .item .dot.mod{background:var(--p)}
+.d6-pile .x{font-size:0.55rem;color:var(--sec);margin-left:auto}
+.d6-flow-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--sc);border:1px solid var(--r);border-radius:10px;padding:0.75rem 1rem;
+  margin-bottom:0.5rem;
+}
+.d6-flow-row .left{display:flex;align-items:center;gap:0.5rem;font-family:var(--fm);font-size:0.65rem}
+.d6-flow-row .left .old{color:var(--sec);text-decoration:line-through}
+.d6-flow-row .left .ar{color:var(--if);font-size:1rem}
+.d6-flow-row .left .new{color:var(--pd);font-weight:500}
+.d6-flow-row .right{font-family:var(--fm);font-size:0.5rem;color:var(--if);background:var(--sd);padding:0.15rem 0.4rem;border-radius:3px}
+
+/* DAY 7 */
+.d7{background:linear-gradient(160deg,#0f0f14 0%,#0c1210 100%)}
+.d7-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;margin-bottom:0.75rem}
+.d7-metric{
+  background:var(--sc);border:1px solid var(--r);border-radius:10px;
+  padding:0.75rem 1rem;text-align:center;
+}
+.d7-metric .n{font-family:var(--fs);font-size:1.6rem;font-weight:600;line-height:1}
+.d7-metric .n.p{color:var(--pd)}
+.d7-metric .n.s{color:var(--sec)}
+.d7-metric .l{font-family:var(--fm);font-size:0.55rem;letter-spacing:0.08em;color:var(--if);text-transform:uppercase}
+.d7-tree{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.d7-folder{
+  background:var(--sc);border:1px solid var(--r);border-radius:8px;padding:0.5rem 0;
+}
+.d7-folder .fh{
+  font-family:var(--fm);font-size:0.55rem;letter-spacing:0.08em;
+  padding:0.25rem 0.75rem;color:var(--pd);font-weight:500;text-transform:uppercase;
+}
+.d7-folder .fe{
+  font-family:var(--fm);font-size:0.55rem;padding:0.2rem 0.75rem;
+  color:var(--is);display:flex;align-items:center;gap:0.35rem;
+}
+.d7-folder .fe:nth-child(even){background:var(--se)}
+.d7-folder .fe .i{color:var(--if)}
+
+/* CLOSING */
+.closing{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:3rem 5rem;
+  background:linear-gradient(135deg,#060a08 0%,#0a120e 50%,#0c1210 100%);
+  color:var(--i);
+  position:relative;overflow:hidden;
+}
+.closing::before{
+  content:'';position:absolute;top:-40%;right:-15%;
+  width:60vmin;height:60vmin;
+  background:radial-gradient(circle,rgba(59,157,114,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.closing-inner{max-width:1300px;margin:0 auto;width:100%;position:relative;z-index:1}
+.closing h2{font-family:var(--fs);font-size:clamp(2rem,4vw,3.5rem);font-weight:600;letter-spacing:-0.02em;line-height:1.1;color:var(--i);margin-bottom:1.5rem}
+.closing h2 .hl{color:var(--pd)}
+.cl-metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:0.6rem;margin-bottom:1.5rem}
+.cl-metrics > div{
+  background:rgba(20,29,25,0.6);backdrop-filter:blur(6px);
+  border:1px solid var(--r);border-radius:10px;padding:0.75rem;text-align:center;
+}
+.cl-metrics .n{font-family:var(--fs);font-size:1.5rem;font-weight:600;line-height:1;color:var(--i)}
+.cl-metrics .l{font-family:var(--fm);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--if);margin-top:0.1rem}
+.cl-bottom{display:grid;grid-template-columns:2fr 1fr;gap:1rem}
+.cl-retro{background:rgba(20,29,25,0.5);border:1px solid var(--r);border-radius:12px;padding:1.25rem}
+.cl-retro h3{font-family:var(--fm);font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--if);margin-bottom:0.5rem}
+.cl-retro .rl{list-style:none}
+.cl-retro .rl li{font-size:0.72rem;color:var(--is);padding:0.25rem 0;padding-left:1rem;position:relative;line-height:1.4}
+.cl-retro .rl li::before{position:absolute;left:0;font-weight:600}
+.cl-retro .rl li.plus::before{content:'+';color:var(--pd)}
+.cl-retro .rl li.minus::before{content:'−';color:var(--sec)}
+.cl-next{background:rgba(20,29,25,0.5);border:1px solid var(--r);border-radius:12px;padding:1.25rem}
+.cl-next h3{font-family:var(--fm);font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--if);margin-bottom:0.5rem}
+.cl-next .ni{margin-bottom:0.6rem}
+.cl-next .ni:last-child{margin-bottom:0}
+.cl-next .ni .ph{font-family:var(--fm);font-size:0.5rem;color:var(--if);letter-spacing:0.08em}
+.cl-next .ni h4{font-family:var(--fs);font-size:0.85rem;font-weight:500;color:var(--i);margin:0.1rem 0}
+.cl-next .ni p{font-size:0.65rem;color:var(--is);line-height:1.4}
+
+@media(max-width:900px){
+  .cover,.slide,.closing{padding:2rem 1.5rem}
+  .cover-metrics{grid-template-columns:repeat(2,1fr)}
+  .d1-grid,.d4-grid,.d6-grid,.d7-metrics,.cl-metrics{grid-template-columns:repeat(2,1fr)}
+  .d2-bifold,.d3-compare,.d5-bifold,.cl-bottom{grid-template-columns:1fr}
+  .d3-metrics,.d7-metrics{grid-template-columns:repeat(2,1fr)}
+  .d2-features,.d7-tree{grid-template-columns:1fr}
+  .cl-metrics{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<section class="cover">
+<div class="cover-inner">
+  <div style="font-family:var(--fm);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--p);margin-bottom:1rem">Sprint 2 · Jun 7–14 2026</div>
+  <h1>Hitaishi<br><span class="hl">Platform</span> <span class="hl2">Engineering</span></h1>
+  <p class="sub">Real-time chat infrastructure · Session collaboration rooms · Role-based portal redesign · Payment architecture migration. 10,781 lines of production code across 109 files — zero TypeScript errors.</p>
+  <div class="cover-metrics">
+    <div><div class="n p">109</div><div class="l">Files changed</div></div>
+    <div><div class="n p">+10,781</div><div class="l">Lines added</div></div>
+    <div><div class="n s">-2,666</div><div class="l">Lines deleted</div></div>
+    <div><div class="n p">0</div><div class="l">TS errors</div></div>
+  </div>
+  <div class="cover-bottom">
+    <span><span class="d g"></span>7 engineering days</span>
+    <span><span class="d c"></span>5 major workstreams</span>
+    <span><span class="d g"></span>3 role-specific portals</span>
+    <span><span class="d c"></span>25 → 20 database tables</span>
+    <span><span class="d g"></span>Next.js 14 · Supabase · Drizzle</span>
+  </div>
+</div>
+</section>
+
+<section class="slide d1">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge g">Day 1 · Jun 7</span>
+    <h2>Real-time Chat Infrastructure</h2>
+    <span class="stat">◆ 12 files · ~1,000 lines</span>
+  </div>
+  <div class="d1-grid">
+    <div class="d1-card">
+      <div class="icn">✎</div>
+      <h4>Student ChatClient</h4>
+      <p>411-line client with optimistic message sends, scroll anchoring, read-receipt indicators, and Supabase broadcast receiver.</p>
+      <div class="tags"><span>broadcast</span><span>optimistic</span><span>411 lines</span></div>
+    </div>
+    <div class="d1-card">
+      <div class="icn">◎</div>
+      <h4>MentorChatClient</h4>
+      <p>378-line multi-conversation sidebar with unread counts, participant avatars, and live message stream via postgres_changes.</p>
+      <div class="tags"><span>sidebar</span><span>unread</span><span>378 lines</span></div>
+    </div>
+    <div class="d1-card">
+      <div class="icn">◉</div>
+      <h4>Admin Chat Oversight</h4>
+      <p>Global conversation viewer — admin reads/writes to any mentor or student conversation with full audit trail.</p>
+      <div class="tags"><span>admin</span><span>oversight</span><span>new page</span></div>
+    </div>
+  </div>
+  <div class="d1-flow">
+    <span>Client</span><span class="ar">→</span>
+    <span>Broadcast</span><span class="ar">→</span>
+    <span>POST API</span><span class="ar">→</span>
+    <span>postgres_changes</span><span class="ar">→</span>
+    <span>Receivers</span>
+  </div>
+  <div style="background:var(--sc);border:1px solid var(--r);border-radius:10px;padding:0.75rem 1rem;margin-top:0.5rem">
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center">
+      <span style="font-family:var(--fm);font-size:0.55rem;color:var(--if);letter-spacing:0.08em">API ENDPOINTS</span>
+      <span style="font-family:var(--fm);font-size:0.6rem;color:var(--pd)">POST /api/chat/conversations</span>
+      <span style="font-family:var(--fm);font-size:0.6rem;color:var(--is)">GET /api/chat/conversations</span>
+      <span style="font-family:var(--fm);font-size:0.6rem;color:var(--is)">GET|POST .../messages</span>
+      <span style="font-family:var(--fm);font-size:0.6rem;color:var(--is)">POST .../read</span>
+    </div>
+  </div>
+</div>
+<div class="snum">02 / 09</div>
+</section>
+
+<section class="slide d2">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge c">Day 2 · Jun 8</span>
+    <h2>Session Room Live Chat</h2>
+    <span class="stat">◆ 6 files · ~800 lines</span>
+  </div>
+  <div class="d2-bifold">
+    <div>
+      <div class="d2-state-machine">
+        <div style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--if);margin-bottom:0.3rem">Session State Machine</div>
+        <div class="d2-states">
+          <div class="d2-state pending">pending<span class="arr">↓</span></div>
+          <div class="d2-state pending">accepted<span class="arr">↓</span></div>
+          <div class="d2-state active">mentor_ready<span class="arr">↓</span></div>
+          <div class="d2-state active">active<span class="arr">↓</span></div>
+          <div class="d2-state done">completed</div>
+        </div>
+        <div style="font-size:0.6rem;color:var(--is);margin-top:0.5rem;line-height:1.4">Role-based UI: mentor sees accept → ready → complete controls. Student sees status timeline.</div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--sc);border:1px solid var(--r);border-radius:12px;padding:1rem">
+        <div style="font-family:var(--fm);font-size:0.55rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--if);margin-bottom:0.5rem">Key Deliverables</div>
+        <div class="d2-features">
+          <div class="d2-feat"><span class="ck">✓</span> SessionRoomClient.tsx · 206 lines</div>
+          <div class="d2-feat"><span class="ck">✓</span> GET /api/session/[id]/chat</div>
+          <div class="d2-feat"><span class="ck">✓</span> POST .../sessions/[id]/observe</div>
+          <div class="d2-feat"><span class="ck">✓</span> SessionsClient.tsx · 322 lines</div>
+          <div class="d2-feat"><span class="ck">✓</span> Session create API +90 lines</div>
+          <div class="d2-feat"><span class="ck">✓</span> Student dashboard session cards</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="snum">03 / 09</div>
+</section>
+
+<section class="slide d3">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge g">Day 3 · Jun 9</span>
+    <h2>Admin Operations Portal</h2>
+    <span class="stat">◆ 8 files · ~1,500 lines</span>
+  </div>
+  <div class="d3-metrics">
+    <div class="d3-metric"><div class="bar p"></div><div class="n p">430</div><div class="l">Dashboard lines</div></div>
+    <div class="d3-metric"><div class="bar s"></div><div class="n s">349</div><div class="l">Student table lines</div></div>
+    <div class="d3-metric"><div class="bar n"></div><div class="n">419</div><div class="l">Mentor table lines</div></div>
+    <div class="d3-metric"><div class="bar p"></div><div class="n p">+166</div><div class="l">Net lines dashboard</div></div>
+  </div>
+  <div class="d3-compare">
+    <div class="d3-ba l">
+      <div class="ttl">Before — Static placeholders</div>
+      <ul>
+        <li>Hardcoded <code style="font-size:0.55rem">—</code> for MRR · LTV · CAC · CHURN · REFUND %</li>
+        <li>No real-time data — static server-rendered HTML</li>
+        <li>No session monitoring</li>
+        <li>Student table: payment/subscription columns</li>
+        <li>Mentor table: earnings/payout columns</li>
+        <li>Settings: Razorpay config, pricing, refund window</li>
+      </ul>
+    </div>
+    <div class="d3-ba r">
+      <div class="ttl">After — Real-time ops monitoring</div>
+      <ul>
+        <li>Real-time KPI cards: active users, session volume, SLA</li>
+        <li>Live session observation endpoint</li>
+        <li>Student table: name, email, mentor, session count</li>
+        <li>Mentor table: student load, session volume, rating</li>
+        <li>Analytics: DOUBT SLA · ATTENDANCE · SESSION FILL · NPS</li>
+        <li>Settings: feature flags + integrations only</li>
+      </ul>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap">
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--secs);color:var(--sec);border-radius:4px">✕ MRR</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--secs);color:var(--sec);border-radius:4px">✕ LTV</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--secs);color:var(--sec);border-radius:4px">✕ CAC</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--secs);color:var(--sec);border-radius:4px">✕ CHURN</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--secs);color:var(--sec);border-radius:4px">✕ REFUND %</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--ps);color:var(--pd);border-radius:4px">✓ DOUBT SLA</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--ps);color:var(--pd);border-radius:4px">✓ ATTENDANCE</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--ps);color:var(--pd);border-radius:4px">✓ SESSION FILL</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--ps);color:var(--pd);border-radius:4px">✓ MENTOR NPS</span>
+    <span style="font-family:var(--fm);font-size:0.5rem;padding:0.2rem 0.5rem;background:var(--ps);color:var(--pd);border-radius:4px">✓ RETENTION</span>
+  </div>
+</div>
+<div class="snum">04 / 09</div>
+</section>
+
+<section class="slide d4">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge c">Day 4 · Jun 10</span>
+    <h2>Mentor Workspace</h2>
+    <span class="stat">◆ 8 files · ~1,500 lines</span>
+  </div>
+  <div class="d4-grid">
+    <div class="d4-c">
+      <div class="top"><span class="i">▦</span><span class="n">Calendar</span><span class="ln">NEW</span></div>
+      <div class="body"><div class="s">171</div><div class="l">lines</div><div class="b-list"><span>weekly grid</span><span>slot blocking</span></div></div>
+    </div>
+    <div class="d4-c">
+      <div class="top"><span class="i">◉</span><span class="n">Student Detail</span><span class="ln">NEW</span></div>
+      <div class="body"><div class="s">329</div><div class="l">lines</div><div class="b-list"><span>session history</span><span>doubt activity</span><span>engagement</span></div></div>
+    </div>
+    <div class="d4-c">
+      <div class="top"><span class="i">▢</span><span class="n">SessionsClient</span><span class="ln">REWRITE</span></div>
+      <div class="body"><div class="s">322</div><div class="l">lines</div><div class="b-list"><span>accept/ready/complete</span><span>live status</span></div></div>
+    </div>
+    <div class="d4-c">
+      <div class="top"><span class="i">?</span><span class="n">Doubt Inbox</span><span class="ln">CLEANED</span></div>
+      <div class="body"><div class="s">237</div><div class="l">lines</div><div class="b-list"><span>status transitions</span><span>no payout refs</span></div></div>
+    </div>
+    <div class="d4-c">
+      <div class="top"><span class="i">❒</span><span class="n">Resources</span><span class="ln">REWRITE</span></div>
+      <div class="body"><div class="s">250</div><div class="l">lines</div><div class="b-list"><span>upload/view</span><span>management</span></div></div>
+    </div>
+    <div class="d4-c">
+      <div class="top"><span class="i">◐</span><span class="n">Dashboard</span><span class="ln">CLEANED</span></div>
+      <div class="body"><div class="s">327</div><div class="l">lines</div><div class="b-list"><span>removed earnings KPI</span><span>kept session count</span></div></div>
+    </div>
+  </div>
+</div>
+<div class="snum">05 / 09</div>
+</section>
+
+<section class="slide d5">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge g">Day 5 · Jun 11</span>
+    <h2>Student Portal Revamp</h2>
+    <span class="stat">◆ 4 files · ~1,300 lines</span>
+  </div>
+  <div style="font-family:var(--fm);font-size:0.5rem;letter-spacing:0.08em;color:var(--if);margin-bottom:0.25rem">Code distribution across student pages (lines)</div>
+  <div class="d5-bar">
+    <div class="seg add">dashboard 599</div>
+    <div class="seg mod">profile 297</div>
+    <div class="seg mod">resources 238</div>
+    <div class="seg del">doubts 176</div>
+  </div>
+  <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;font-size:0.55rem;font-family:var(--fm)">
+    <span style="color:var(--p)">■ dashboard</span>
+    <span style="color:var(--ph)">■ profile</span>
+    <span style="color:var(--ph)">■ resources</span>
+    <span style="color:var(--sec)">■ doubts</span>
+  </div>
+  <div class="d5-bifold">
+    <div class="d5-card">
+      <div class="ttl-row"><h4>Before — Billing clutter</h4><div class="chips"><span class="del">-payment</span><span class="del">-subscription</span></div></div>
+      <ul>
+        <li>Dashboard displayed subscription details, plan name, payment status</li>
+        <li>Profile page showed full transaction/payment history</li>
+        <li>Subscription card with plan info dominated the UI</li>
+        <li>No session cards or mentor overview</li>
+      </ul>
+    </div>
+    <div class="d5-card">
+      <div class="ttl-row"><h4>After — Learning focus</h4><div class="chips"><span class="add">+session cards</span><span class="add">+mentor overview</span></div></div>
+      <ul>
+        <li>599-line dashboard: session cards, mentor overview, doubt tracker</li>
+        <li>Profile: personal details, mentor assignment, session stats only</li>
+        <li>Resources: assignment viewing with submission tracking</li>
+        <li>All payment/subscription imports removed entirely</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="snum">06 / 09</div>
+</section>
+
+<section class="slide d6">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge c">Day 6 · Jun 12</span>
+    <h2>Payment Architecture Migration</h2>
+    <span class="stat">◆ 38 files affected</span>
+  </div>
+  <div class="d6-flow-row">
+    <div class="left"><span class="old">25 database tables</span><span class="ar">→</span><span class="new">20 tables</span></div>
+    <div class="right">-6 tables (payments schema removed)</div>
+  </div>
+  <div class="d6-flow-row">
+    <div class="left"><span class="old">4 payment library modules</span><span class="ar">→</span><span class="new">0 modules</span></div>
+    <div class="right">razorpay · razorpay-schema · webhook-handler · provisioning</div>
+  </div>
+  <div class="d6-flow-row">
+    <div class="left"><span class="old">4 page directories</span><span class="ar">→</span><span class="new">0 directories</span></div>
+    <div class="right">checkout · earnings · payments · terms</div>
+  </div>
+  <div class="d6-flow-row">
+    <div class="left"><span class="old">2 columns on schema</span><span class="ar">→</span><span class="new">0 columns</span></div>
+    <div class="right">profiles.payout_details · doubts.payout_inr</div>
+  </div>
+  <div class="d6-grid">
+    <div class="d6-pile">
+      <div class="pt">Deleted tables</div>
+      <div class="item"><span class="dot del"></span>plans<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>payments<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>subscriptions<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>refunds<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>payouts<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>webhook_events<span class="x">✕</span></div>
+    </div>
+    <div class="d6-pile">
+      <div class="pt">Deleted pages &amp; routes</div>
+      <div class="item"><span class="dot del"></span>app/checkout/<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>app/mentor/earnings/<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>app/admin/payments/<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>app/terms/<span class="x">✕</span></div>
+      <div class="item"><span class="dot del"></span>app/api/webhooks/razorpay/<span class="x">✕</span></div>
+    </div>
+  </div>
+</div>
+<div class="snum">07 / 09</div>
+</section>
+
+<section class="slide d7">
+<div class="slide-inner">
+  <div class="day-hdr">
+    <span class="badge g">Day 7 · Jun 13–14</span>
+    <h2>Tooling, PWA &amp; Housekeeping</h2>
+    <span class="stat">◆ 15+ files · -104,900 lines</span>
+  </div>
+  <div class="d7-metrics">
+    <div class="d7-metric"><div class="n p">11</div><div class="l">Automation scripts</div></div>
+    <div class="d7-metric"><div class="n s">4</div><div class="l">PWA brand assets</div></div>
+    <div class="d7-metric"><div class="n s">538</div><div class="l">Legacy files deleted</div></div>
+    <div class="d7-metric"><div class="n p">-104,900</div><div class="l">Lines removed</div></div>
+  </div>
+  <div class="d7-tree">
+    <div class="d7-folder">
+      <div class="fh">📁 scripts/ · 11 automation tools</div>
+      <div class="fe"><span class="i">▸</span>add-chat-rls.ts · RLS policy deployment</div>
+      <div class="fe"><span class="i">▸</span>enable-realtime.ts · Supabase realtime config</div>
+      <div class="fe"><span class="i">▸</span>seed-test-data.mjs · test fixtures</div>
+      <div class="fe"><span class="i">▸</span>check-session-schema.mjs · schema validation</div>
+      <div class="fe"><span class="i">▸</span>write-placeholder-icons.mjs · PWA icons</div>
+      <div class="fe"><span class="i">▸</span>generate-pwa-icons.mjs · icon generation</div>
+      <div class="fe"><span class="i">▸</span>check-conv.mjs · conversation debug</div>
+      <div class="fe"><span class="i">▸</span>add-flags-column.mjs · session flags migration</div>
+      <div class="fe"><span class="i">▸</span>get-db-info.mjs · db introspection</div>
+      <div class="fe"><span class="i">▸</span>get-participants.mjs · participant debug</div>
+      <div class="fe"><span class="i">▸</span>test-send-api.mjs · API test harness</div>
+    </div>
+    <div class="d7-folder">
+      <div class="fh">📁 public/ · PWA &amp; brand</div>
+      <div class="fe"><span class="i">▸</span>manifest.json · PWA manifest</div>
+      <div class="fe"><span class="i">▸</span>icon-192.png · 192px home screen</div>
+      <div class="fe"><span class="i">▸</span>icon-512.png · 512px splash</div>
+      <div class="fe"><span class="i">▸</span>apple-touch-icon.png · iOS bookmark</div>
+      <div class="fe"><span class="i">▸</span>hitaishi-logo.svg · brand vector</div>
+      <div class="fh" style="margin-top:0.3rem">📁 db/ · schema + seed</div>
+      <div class="fe"><span class="i">▸</span>seed.ts · +50 lines conv fixtures</div>
+      <div class="fe"><span class="i">▸</span>mentorship.ts · new table</div>
+    </div>
+  </div>
+</div>
+<div class="snum">08 / 09</div>
+</section>
+
+<section class="closing">
+<div class="closing-inner">
+  <h2>Sprint 2 · <span class="hl">Complete</span></h2>
+  <div class="cl-metrics">
+    <div><div class="n">109</div><div class="l">Files changed</div></div>
+    <div><div class="n">10,781</div><div class="l">Lines added</div></div>
+    <div><div class="n">2,666</div><div class="l">Lines removed</div></div>
+    <div><div class="n">104,900</div><div class="l">Config removed</div></div>
+    <div><div class="n">25→20</div><div class="l">DB tables</div></div>
+    <div><div class="n">0</div><div class="l">TS errors</div></div>
+  </div>
+  <div class="cl-bottom">
+    <div class="cl-retro">
+      <h3>What shipped</h3>
+      <ul class="rl">
+        <li class="plus">Chat infrastructure from zero — 3 clients, 4 APIs, realtime delivery under 200ms</li>
+        <li class="plus">Session collaboration with live messaging and 5-state machine</li>
+        <li class="plus">Admin portal: static placeholders → real-time ops monitoring</li>
+        <li class="plus">Mentor productivity suite: calendar, student detail, doubt inbox</li>
+        <li class="plus">Student dashboard: billing clutter → learning focus</li>
+        <li class="minus">Per-transaction Razorpay system fully stripped — 6 tables, 4 libs, 4 dirs</li>
+        <li class="minus">538 legacy agent config files purged (104,900 lines)</li>
+      </ul>
+    </div>
+    <div class="cl-next">
+      <h3>Next sprint</h3>
+      <div class="ni"><div class="ph">P0 · Billing</div><h4>Monthly Subscription Engine</h4><p>Student auto-pay, mentor payroll, reconciliation dashboard</p></div>
+      <div class="ni"><div class="ph">P1 · Analytics</div><h4>Session Analytics Pipeline</h4><p>Events ingestion → real-time KPIs → quality scoring</p></div>
+      <div class="ni"><div class="ph">P2 · Growth</div><h4>Mentor Onboarding v2</h4><p>Self-serve registration, qualification, automated matching</p></div>
+    </div>
+  </div>
+</div>
+</section>
+
+</body>
+</html>

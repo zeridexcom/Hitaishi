@@ -3,8 +3,6 @@ import {
   hashPassword,
   verifyPassword,
   createSessionToken,
-  hashWebhookId,
-  computeExpiry,
 } from "./auth";
 
 describe("hashPassword / verifyPassword", () => {
@@ -42,25 +40,4 @@ describe("createSessionToken", () => {
   });
 });
 
-describe("hashWebhookId (idempotency)", () => {
-  it("is deterministic for the same input", () => {
-    expect(hashWebhookId("evt_abc")).toBe(hashWebhookId("evt_abc"));
-  });
 
-  it("differs for different inputs", () => {
-    expect(hashWebhookId("evt_a")).not.toBe(hashWebhookId("evt_b"));
-  });
-});
-
-describe("computeExpiry", () => {
-  it("adds duration_days to a given start date", () => {
-    const start = new Date("2026-01-01T00:00:00Z");
-    const out = computeExpiry(start, 180);
-    expect(out.toISOString()).toBe("2026-06-30T00:00:00.000Z");
-  });
-
-  it("throws for non-positive duration", () => {
-    expect(() => computeExpiry(new Date(), 0)).toThrow();
-    expect(() => computeExpiry(new Date(), -5)).toThrow();
-  });
-});

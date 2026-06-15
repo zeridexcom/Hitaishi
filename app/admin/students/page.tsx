@@ -1,61 +1,18 @@
 import { Shell } from "@/components/Shell";
-import { Card, LinkButton, Pill } from "@/components/ui";
-import { initials, formatLastSeen } from "@/lib/format";
+import { Card, LinkButton } from "@/components/ui";
+import { initials } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
 import {
   users,
   profiles,
-  subscriptions,
-  plans,
-  payments,
   assignments,
 } from "@/db/schema";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 
 export const dynamic = "force-dynamic";
 
-type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
-
 const STUDENT_LIMIT = 50;
-
-const statusTone: Record<"active" | "expired" | "refunded" | "comp", Tone> = {
-  active: "primary",
-  expired: "warn",
-  refunded: "error",
-  comp: "neutral",
-};
-
-const statusLabel: Record<"active" | "expired" | "refunded" | "comp", string> = {
-  active: "Active",
-  expired: "Expired",
-  refunded: "Refunded",
-  comp: "Comp",
-};
-
-const paymentTone: Record<string, Tone> = {
-  captured: "primary",
-  success: "primary",
-  refunded: "error",
-  failed: "error",
-  pending: "warn",
-  created: "warn",
-  "n/a": "neutral",
-};
-
-const paymentLabel: Record<string, string> = {
-  success: "captured",
-  refunded: "refunded",
-  failed: "failed",
-  created: "pending",
-};
-
-const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
 
 export default async function AdminStudentsPage() {
   await requireRole("admin");
@@ -67,41 +24,9 @@ export default async function AdminStudentsPage() {
     .from(users)
     .where(studentBase);
 
-  const [activeRow] = await db
-    .select({ c: sql<number>`count(distinct ${subscriptions.userId})::int` })
-    .from(subscriptions)
-    .where(eq(subscriptions.status, "active"));
-
-  const [expiredRow] = await db
-    .select({ c: sql<number>`count(distinct ${subscriptions.userId})::int` })
-    .from(subscriptions)
-    .where(eq(subscriptions.status, "expired"));
-
-  const [refundedRow] = await db
-    .select({ c: sql<number>`count(distinct ${payments.userId})::int` })
-    .from(payments)
-    .where(eq(payments.status, "refunded"));
-
-  const [compRow] = await db
-    .select({ c: count() })
-    .from(users)
-    .where(
-      and(
-        studentBase,
-        eq(users.status, "active"),
-        sql`${users.id} NOT IN (SELECT ${payments.userId} FROM ${payments} WHERE ${payments.userId} IS NOT NULL)`,
-      ),
-    );
-
   const filters = [
     { key: "all", label: "All", count: Number(allRow?.c ?? 0) },
-    { key: "active", label: "Active", count: Number(activeRow?.c ?? 0) },
-    { key: "expired", label: "Expired", count: Number(expiredRow?.c ?? 0) },
-    { key: "comp", label: "Comp", count: Number(compRow?.c ?? 0) },
-    { key: "refunded", label: "Refunded", count: Number(refundedRow?.c ?? 0) },
   ];
-
-  const mentorProfile = alias(profiles, "mp");
 
   const rows = await db
     .select({
@@ -110,37 +35,12 @@ export default async function AdminStudentsPage() {
       phone: users.phone,
       fullName: profiles.fullName,
       lastLoginAt: users.lastLoginAt,
-      planName: sql<string | null>`(
-        SELECT ${plans.name} FROM ${plans}
-          INNER JOIN ${subscriptions} ON ${subscriptions.planId} = ${plans.id}
-         WHERE ${subscriptions.userId} = ${users.id}
-         ORDER BY ${subscriptions.startedAt} DESC
-         LIMIT 1
-      )`,
-      subStatus: sql<string | null>`(
-        SELECT status FROM ${subscriptions}
-         WHERE user_id = ${users.id}
-         ORDER BY started_at DESC
-         LIMIT 1
-      )`,
-      subExpiresAt: sql<Date | null>`(
-        SELECT expires_at FROM ${subscriptions}
-         WHERE user_id = ${users.id}
-         ORDER BY started_at DESC
-         LIMIT 1
-      )`,
-      paymentStatus: sql<string | null>`(
-        SELECT status FROM ${payments}
-         WHERE user_id = ${users.id}
-         ORDER BY created_at DESC
-         LIMIT 1
-      )`,
       mentorName: sql<string | null>`(
-        SELECT ${mentorProfile.fullName} FROM ${mentorProfile}
-          INNER JOIN ${assignments} ON ${assignments.mentorId} = ${mentorProfile.userId}
-         WHERE ${assignments.studentId} = ${users.id}
-           AND ${assignments.status} = 'active'
-         ORDER BY ${assignments.startedAt} DESC
+        SELECT pf.full_name FROM profiles pf
+         INNER JOIN assignments ON assignments.mentor_id = pf.user_id
+         WHERE assignments.student_id = ${users.id}
+           AND assignments.status = 'active'
+         ORDER BY assignments.started_at DESC
          LIMIT 1
       )`,
     })
@@ -201,17 +101,8 @@ export default async function AdminStudentsPage() {
               <th className="px-4 py-3 text-left text-[11px] font-mono uppercase tracking-wider text-ink-soft">
                 Student
               </th>
-              <th className="px-4 py-3 text-left text-[11px] font-mono uppercase tracking-wider text-ink-soft hidden md:table-cell">
-                Plan / Payment
-              </th>
               <th className="px-4 py-3 text-left text-[11px] font-mono uppercase tracking-wider text-ink-soft hidden lg:table-cell">
                 Mentor
-              </th>
-              <th className="px-4 py-3 text-left text-[11px] font-mono uppercase tracking-wider text-ink-soft hidden xl:table-cell">
-                Expires
-              </th>
-              <th className="px-4 py-3 text-left text-[11px] font-mono uppercase tracking-wider text-ink-soft">
-                Status
               </th>
               <th className="px-4 py-3 text-right text-[11px] font-mono uppercase tracking-wider text-ink-soft">
                 Actions
@@ -222,7 +113,7 @@ export default async function AdminStudentsPage() {
             {rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={4}
                   className="px-4 py-10 text-center text-ink-faint italic"
                 >
                   No data yet
@@ -234,31 +125,9 @@ export default async function AdminStudentsPage() {
                 email: string;
                 fullName: string | null;
                 lastLoginAt: Date | null;
-                planName: string | null;
-                subStatus: string | null;
-                subExpiresAt: Date | null;
-                paymentStatus: string | null;
                 mentorName: string | null;
               }) => {
                 const name = s.fullName ?? s.email.split("@")[0];
-                const payKey = s.paymentStatus ?? "n/a";
-                const payText = paymentLabel[payKey] ?? payKey;
-                const subStatus = s.subStatus as
-                  | "active"
-                  | "expired"
-                  | "refunded"
-                  | "revoked"
-                  | null;
-                const statusKey: "active" | "expired" | "refunded" | "comp" =
-                  !s.paymentStatus
-                    ? "comp"
-                    : subStatus === "active"
-                      ? "active"
-                      : subStatus === "expired"
-                        ? "expired"
-                        : payKey === "refunded"
-                          ? "refunded"
-                          : "comp";
                 return (
                   <tr
                     key={s.id}
@@ -278,32 +147,8 @@ export default async function AdminStudentsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <div className="text-sm">{s.planName ?? "—"}</div>
-                      <Pill
-                        tone={paymentTone[payKey] ?? "neutral"}
-                        className="mt-1"
-                      >
-                        {payText}
-                      </Pill>
-                    </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-ink-soft">
                       {s.mentorName ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 hidden xl:table-cell font-mono text-xs">
-                      {s.subExpiresAt
-                        ? DATE_FMT.format(new Date(s.subExpiresAt))
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Pill tone={statusTone[statusKey]}>
-                        {statusLabel[statusKey]}
-                      </Pill>
-                      <div className="meta mt-1">
-                        {s.lastLoginAt
-                          ? formatLastSeen(new Date(s.lastLoginAt))
-                          : "—"}
-                      </div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <LinkButton

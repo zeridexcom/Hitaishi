@@ -1,18 +1,17 @@
 import { redirect } from "next/navigation";
-import { and, desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
 import {
   Card,
   CardBody,
   CardHeader,
-  LinkButton,
   Pill,
   Field,
   Input,
   Select,
 } from "@/components/ui";
 import { db } from "@/lib/db";
-import { payments, plans, profiles, subscriptions, users } from "@/db/schema";
+import { profiles, users } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -37,26 +36,12 @@ function subjectLabel(s: string): string {
   return s;
 }
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function paymentLabel(method: string | null, status: string): string {
-  if (status === "refunded") return "Refund";
-  if (status === "failed") return "Failed payment";
-  if (method === "upi") return "UPI payment";
-  if (method === "card") return "Card payment";
-  if (method === "netbanking") return "Net-banking payment";
-  if (method === "emi") return "EMI payment";
-  return "Payment";
-}
-
 export default async function StudentProfilePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.role !== "student") redirect(`/${user.role}/dashboard`);
 
-  const [profileRow, activeSubscriptionRows, recentPayments] = await Promise.all([
+  const [profileRow] = await Promise.all([
     db
       .select({
         email: users.email,
@@ -72,40 +57,10 @@ export default async function StudentProfilePage() {
       .leftJoin(profiles, eq(profiles.userId, users.id))
       .where(eq(users.id, user.id))
       .limit(1),
-    db
-      .select({
-        planId: plans.id,
-        planName: plans.name,
-        amountInr: plans.priceInr,
-        startedAt: subscriptions.startedAt,
-        expiresAt: subscriptions.expiresAt,
-      })
-      .from(subscriptions)
-      .innerJoin(plans, eq(plans.id, subscriptions.planId))
-      .where(
-        and(
-          eq(subscriptions.userId, user.id),
-          eq(subscriptions.status, "active"),
-        ),
-      )
-      .orderBy(desc(subscriptions.startedAt))
-      .limit(1),
-    db
-      .select({
-        id: payments.id,
-        amountInr: payments.amountInr,
-        status: payments.status,
-        method: payments.method,
-        createdAt: payments.createdAt,
-      })
-      .from(payments)
-      .where(eq(payments.userId, user.id))
-      .orderBy(desc(payments.createdAt))
-      .limit(10),
   ]);
 
   const profile = profileRow[0] ?? null;
-  const activeSubscription = activeSubscriptionRows[0] ?? null;
+  const activeSubscription = null;
   const fullName = profile?.fullName ?? user.fullName;
   const email = profile?.email ?? user.email;
   const phone = profile?.phone ?? "";
@@ -116,30 +71,6 @@ export default async function StudentProfilePage() {
   const subjects: string[] = Array.isArray(profile?.subjectsFocus)
     ? (profile!.subjectsFocus as string[])
     : [];
-
-  const planDays = activeSubscription
-    ? Math.max(
-        1,
-        Math.round(
-          (activeSubscription.expiresAt.getTime() -
-            activeSubscription.startedAt.getTime()) /
-            (1000 * 60 * 60 * 24),
-        ),
-      )
-    : 0;
-  const daysUsed = activeSubscription
-    ? Math.max(
-        0,
-        Math.floor(
-          (Date.now() - activeSubscription.startedAt.getTime()) /
-            (1000 * 60 * 60 * 24),
-        ) + 1,
-      )
-    : 0;
-  const planPct =
-    activeSubscription && planDays > 0
-      ? Math.min(100, Math.round((daysUsed / planDays) * 100))
-      : 0;
 
   return (
     <Shell
@@ -194,86 +125,17 @@ export default async function StudentProfilePage() {
         </Card>
 
         <Card>
-          <CardHeader
-            meta="CURRENT PLAN"
-            title={activeSubscription?.planName ?? "No active plan"}
-          />
+          <CardHeader meta="CURRENT PLAN" title="No active plan" />
           <CardBody>
-            {activeSubscription ? (
-              <>
-                <div className="meta">EXPIRES</div>
-                <div className="font-serif text-2xl mt-1">
-                  {formatDate(activeSubscription.expiresAt)}
-                </div>
-                <div className="text-sm text-ink-soft mt-1">
-                  {daysUsed} of {planDays} days used
-                </div>
-                <div className="h-2 bg-surface-elevated rounded-pill mt-3 overflow-hidden">
-                  <div
-                    className="bg-primary h-full"
-                    style={{ width: `${planPct}%` }}
-                  />
-                </div>
-                <div className="meta mt-5">PURCHASED</div>
-                <div className="text-sm">
-                  {formatDate(activeSubscription.startedAt)} · ₹
-                  {activeSubscription.amountInr.toLocaleString("en-IN")}
-                </div>
-                <LinkButton href="/checkout" size="md" className="mt-5 w-full">
-                  Renew plan
-                </LinkButton>
-              </>
-            ) : (
-              <>
-                <div className="font-serif text-2xl text-ink-soft mt-1">
-                  No active plan
-                </div>
-                <div className="text-sm text-ink-soft mt-1">
-                  Pick a plan to unlock sessions, doubts, and resources.
-                </div>
-                <LinkButton href="/checkout" size="md" className="mt-5 w-full">
-                  Choose a plan
-                </LinkButton>
-              </>
-            )}
+            <div className="font-serif text-2xl text-ink-soft mt-1">
+              No active plan
+            </div>
+            <div className="text-sm text-ink-soft mt-1">
+              Pick a plan to unlock sessions, doubts, and resources.
+            </div>
           </CardBody>
         </Card>
       </div>
-
-      <Card className="mt-5">
-        <CardHeader meta="TRANSACTIONS" title="Recent transactions" />
-        {recentPayments.length === 0 ? (
-          <CardBody>
-            <p className="text-sm text-ink-soft text-center py-4">
-              No transactions yet.
-            </p>
-          </CardBody>
-        ) : (
-          <ul>
-            {recentPayments.map((t: any) => (
-              <li
-                key={t.id}
-                className="flex items-center justify-between px-5 py-4 border-t border-rule first:border-t-0"
-              >
-                <div>
-                  <div className="text-sm font-medium">
-                    {paymentLabel(t.method, t.status)}
-                  </div>
-                  <div className="meta mt-1">{formatDate(t.createdAt)}</div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="font-mono text-sm">
-                    ₹{t.amountInr.toLocaleString("en-IN")}
-                  </div>
-                  <LinkButton href="/student/profile" variant="ghost" size="sm">
-                    Receipt
-                  </LinkButton>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
 
       <Card className="mt-5">
         <CardHeader meta="NOTIFICATIONS" title="Preferences" />

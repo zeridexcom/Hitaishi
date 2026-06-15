@@ -9,7 +9,7 @@ type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 const featureFlags = [
   { key: "betaDoubtAuction", label: "Beta — doubt auction", value: false, desc: "Mentors bid response times on new doubts." },
   { key: "groupSessions", label: "Group sessions", value: true, desc: "12-student group rooms via Jitsi." },
-  { key: "mentorPayoutSelfServe", label: "Mentor payout self-serve", value: false, desc: "Mentors can request off-cycle payouts." },
+
   { key: "newOnboarding", label: "New onboarding (S.02 v2)", value: true, desc: "3-step student onboarding with goal capture." },
 ];
 
@@ -25,7 +25,6 @@ function envStatus(name: string, label: string, envKey: string, fallback: { tone
 }
 
 const integrations = [
-  envStatus("razorpay", "Razorpay", "RAZORPAY_KEY_ID", { tone: "warn", status: "Not configured" }),
   { name: "Jitsi Meet", env: "—", status: "Active", tone: "primary" as Tone, lastChecked: "always" },
   envStatus("msg91", "MSG91 (SMS)", "MSG91_AUTH_KEY", { tone: "warn", status: "Not configured" }),
   envStatus("resend", "Resend (Email)", "RESEND_API_KEY", { tone: "warn", status: "Not configured" }),
@@ -40,7 +39,7 @@ export default async function AdminSettingsPage() {
       active="settings"
       pageCode="A.08 — SETTINGS & CONFIGURATION"
       pageTitle="Platform settings"
-      pageSubtitle="Feature flags, pricing, integrations, security policies."
+      pageSubtitle="Feature flags, integrations, security policies."
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <Card>
@@ -66,25 +65,6 @@ export default async function AdminSettingsPage() {
               </li>
             ))}
           </ul>
-        </Card>
-
-        <Card>
-          <CardHeader meta="PRICING" title="Plan amounts (INR)" />
-          <CardBody className="grid gap-4">
-            <Field label="JEE Adv · 6 months" hint="Edit and save — not yet wired to db">
-              <Input type="number" defaultValue="" placeholder="0" step={100} />
-            </Field>
-            <Field label="JEE Main · 6 months" hint="Edit and save — not yet wired to db">
-              <Input type="number" defaultValue="" placeholder="0" step={100} />
-            </Field>
-            <Field label="Mentor share %">
-              <Input type="number" defaultValue="" min={0} max={100} placeholder="0" />
-            </Field>
-            <Field label="Refund window (days)">
-              <Input type="number" defaultValue="" min={0} max={30} placeholder="0" />
-            </Field>
-            <button className="chip-cta mt-2">Save pricing</button>
-          </CardBody>
         </Card>
 
         <Card>

@@ -72,7 +72,6 @@ export default async function MentorDoubtsPage() {
       subject: doubts.subject,
       body: doubts.body,
       topic: doubts.topic,
-      payoutInr: doubts.payoutInr,
       createdAt: doubts.createdAt,
       studentName: profiles.fullName,
       studentEmail: users.email,
@@ -97,7 +96,7 @@ export default async function MentorDoubtsPage() {
 
   const [earnedTodayRow] = await db
     .select({
-      sum: sql<number>`coalesce(sum(${doubts.payoutInr}), 0)::int`,
+      sum: sql<number>`0::int`,
     })
     .from(doubtAnswers)
     .innerJoin(doubts, eq(doubts.id, doubtAnswers.doubtId))
@@ -119,7 +118,7 @@ export default async function MentorDoubtsPage() {
       subject: subjectLabel(d.subject),
       snippet: d.topic ? `${d.topic} — ${d.body.slice(0, 80)}` : d.body.slice(0, 120),
       elapsed,
-      reward: d.payoutInr ?? 40,
+      reward: 0,
       sla: hours >= 4 ? ("warn" as const) : ("primary" as const),
     };
   });

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardBody, LinkButton, Pill } from "@/components/ui";
+import { Card, CardBody } from "@/components/ui";
 import { initials } from "@/lib/format";
 import { subscribeToConversation, subscribeToSidebar, type IncomingMessage } from "@/lib/realtime/client";
 
@@ -9,6 +9,7 @@ export type ConvListItem = {
   otherId: string | null;
   otherName: string;
   otherEmail: string;
+  otherRole: string | null;
   otherInstitute: string | null;
   otherLastLogin: string | null;
   lastMessageAt: string | null;
@@ -87,25 +88,21 @@ function groupByDay(msgs: Msg[]): Array<{ day: string; items: Msg[] }> {
 }
 
 export type RightPanelData = {
-  participant: { name: string; email: string; institute: string | null; targetExam: string | null };
-  upcomingSession: { id: string; title: string; scheduledAt: string; durationMinutes: number; meetLink: string | null } | null;
-  role: "student" | "mentor";
+  participant: { name: string; email: string; role: string | null; institute: string | null };
 };
 
-export function ChatClient({
+export function AdminChatClient({
   userId,
   userName,
   initialConvs,
   initialActiveId,
   initialMessages,
-  rightPanelData,
 }: {
   userId: string;
   userName: string;
   initialConvs: ConvListItem[];
   initialActiveId: string | null;
   initialMessages: InitialMessage[];
-  rightPanelData: RightPanelData;
 }) {
   const [convs, setConvs] = useState<ConvListItem[]>(initialConvs);
   const [activeId, setActiveId] = useState<string | null>(initialActiveId);
@@ -171,22 +168,6 @@ export function ChatClient({
   }, [activeId]);
 
   useEffect(() => {
-    if (!activeId) return;
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type === "supabase-message" && e.data?.conversationId !== activeId) {
-        const m = e.data.payload;
-        setMessagesByConv((prev) => {
-          const existing = prev[m.conversationId] ?? [];
-          if (existing.some((x) => x.id === m.id)) return prev;
-          return { ...prev, [m.conversationId]: [...existing, m] };
-        });
-      }
-    };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, [activeId]);
-
-  useEffect(() => {
     if (activeId) {
       fetch(`/api/chat/conversations/${activeId}/read`, { method: "POST" }).catch(() => {});
       setConvs((prev) => prev.map((c) => (c.id === activeId ? { ...c, unread: 0 } : c)));
@@ -196,11 +177,6 @@ export function ChatClient({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [activeMessages.length, activeId]);
-
-  useEffect(() => {
-    const id = setInterval(() => setConvs((prev) => [...prev]), 30_000);
-    return () => clearInterval(id);
-  }, []);
 
   async function handleDelete() {
     if (!activeId || !active) return;
@@ -262,7 +238,7 @@ export function ChatClient({
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search or start a new chat"
+            placeholder="Search users"
             className="w-full rounded-input border border-rule-strong px-3 py-2 text-sm bg-surface-elevated focus:outline-none focus:border-primary"
           />
         </div>
@@ -318,6 +294,7 @@ export function ChatClient({
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm truncate">{active.otherName}</div>
                 <div className="meta">
+                  {active.otherRole && <span className="capitalize">{active.otherRole} · </span>}
                   {isOnline(active.otherLastLogin)
                     ? "Online"
                     : `Last seen ${fmtLastSeen(active.otherLastLogin)}`}
@@ -374,9 +351,6 @@ export function ChatClient({
             </div>
 
             <footer className="px-3 py-3 border-t border-rule bg-surface-card flex items-end gap-2">
-              <button aria-label="Attach" className="text-ink-soft hover:text-primary-deep p-2 rounded-full hover:bg-surface-elevated">
-                <span className="text-lg">📎</span>
-              </button>
               <textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -414,50 +388,26 @@ export function ChatClient({
       {active && showInfo && (
         <aside className="hidden md:flex flex-col border-l border-rule bg-surface-card overflow-y-auto">
           <div className="p-5 text-center border-b border-rule">
-            <div className="avatar !w-20 !h-20 !text-xl mx-auto">{initials(rightPanelData.participant.name)}</div>
-            <div className="font-serif text-lg mt-3">{rightPanelData.participant.name}</div>
-            <div className="meta">{rightPanelData.participant.email}</div>
+            <div className="avatar !w-20 !h-20 !text-xl mx-auto">{initials(active.otherName)}</div>
+            <div className="font-serif text-lg mt-3">{active.otherName}</div>
+            <div className="meta">{active.otherEmail}</div>
           </div>
           <div className="p-4 border-b border-rule">
-            <div className="meta mb-2">{rightPanelData.role === "student" ? "MENTOR PROFILE" : "STUDENT PROFILE"}</div>
+            <div className="meta mb-2">USER PROFILE</div>
             <div className="text-sm">
               <div className="flex justify-between py-1.5">
-                <span className="text-ink-soft">Institute</span>
-                <span>{rightPanelData.participant.institute ?? "—"}</span>
+                <span className="text-ink-soft">Role</span>
+                <span className="capitalize">{active.otherRole ?? "—"}</span>
               </div>
-              {rightPanelData.participant.targetExam && (
-                <div className="flex justify-between py-1.5">
-                  <span className="text-ink-soft">Target exam</span>
-                  <span>{rightPanelData.participant.targetExam}</span>
-                </div>
-              )}
+              <div className="flex justify-between py-1.5">
+                <span className="text-ink-soft">Institute</span>
+                <span>{active.otherInstitute ?? "—"}</span>
+              </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-ink-soft">Email</span>
-                <span className="truncate ml-2">{rightPanelData.participant.email}</span>
+                <span className="truncate ml-2">{active.otherEmail}</span>
               </div>
             </div>
-          </div>
-          <div className="p-4">
-            <div className="meta mb-2">UPCOMING SESSION</div>
-            {rightPanelData.upcomingSession ? (
-              <Card>
-                <CardBody>
-                  <div className="font-medium text-sm">{rightPanelData.upcomingSession.title}</div>
-                  <div className="meta mt-1">{new Date(rightPanelData.upcomingSession.scheduledAt).toLocaleString()}</div>
-                  <div className="meta">{rightPanelData.upcomingSession.durationMinutes} min</div>
-                  <LinkButton
-                    href={rightPanelData.upcomingSession.meetLink || `/session/${rightPanelData.upcomingSession.id}`}
-                    size="md"
-                    className="mt-3 w-full"
-                    target="_blank"
-                  >
-                    Join session
-                  </LinkButton>
-                </CardBody>
-              </Card>
-            ) : (
-              <p className="text-sm text-ink-soft">No upcoming sessions.</p>
-            )}
           </div>
           <div className="p-4 border-t border-rule">
             <button

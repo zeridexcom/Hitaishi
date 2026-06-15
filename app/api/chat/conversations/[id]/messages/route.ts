@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { conversationParticipants, conversations, messages } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { sendMessage, type MessageStore, type RealtimePublisher } from "@/lib/messages";
+import { broadcastNewMessage } from "@/lib/realtime/server";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -58,10 +59,17 @@ const store: MessageStore = {
   },
 };
 
-const noopPublisher: RealtimePublisher = {
-  async publish() {
-    // No-op for MVP: Supabase Realtime listens to postgres_changes on `messages`
-    // and broadcasts to all subscribed clients automatically. No server publish needed.
+const realtimePublisher: RealtimePublisher = {
+  async publish(_channel, event) {
+    if (event.type === "message:new") {
+      broadcastNewMessage({
+        id: event.payload.id,
+        conversation_id: event.payload.conversationId,
+        sender_id: event.payload.senderId,
+        body: event.payload.body,
+        created_at: new Date().toISOString(),
+      }).catch(() => {});
+    }
   },
 };
 
@@ -84,7 +92,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const result = await sendMessage(
     { conversationId: params.id, senderId: user.id, body: parsed.data.body },
     store,
-    noopPublisher,
+    realtimePublisher,
   );
 
   if (result.status === "forbidden") return NextResponse.json({ error: "forbidden" }, { status: 403 });

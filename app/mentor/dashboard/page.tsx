@@ -5,7 +5,6 @@ import { db } from "@/lib/db";
 import {
   assignments,
   doubts,
-  payouts,
   profiles,
   sessions,
   users,
@@ -25,19 +24,11 @@ function endOfDay(d: Date): Date {
   x.setHours(23, 59, 59, 999);
   return x;
 }
-function firstOfMonth(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 export default async function MentorDashboard() {
   const user = await requireRole("mentor");
   const now = new Date();
   const dayStart = startOfDay(now);
   const dayEnd = endOfDay(now);
-  const monthStart = firstOfMonth(now);
 
   const [studentsCountRow] = await db
     .select({ c: sql<number>`count(*)::int` })
@@ -64,11 +55,6 @@ export default async function MentorDashboard() {
         and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
       ),
     );
-
-  const [earningsRow] = await db
-    .select({ sum: sql<number>`coalesce(sum(${payouts.netInr}), 0)::int` })
-    .from(payouts)
-    .where(and(eq(payouts.userId, user.id), gte(payouts.periodStart, monthStart)));
 
   const attentionRows = await db
     .select({
@@ -130,7 +116,7 @@ export default async function MentorDashboard() {
     students: Number(studentsCountRow?.c ?? 0),
     sessionsToday: Number(sessionsTodayRow?.c ?? 0),
     doubtsPending: Number(doubtsPendingRow?.c ?? 0),
-    earningsThisMonth: Number(earningsRow?.sum ?? 0),
+    earningsThisMonth: 0,
     status: "Available" as const,
   };
 

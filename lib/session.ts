@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { authSessions, profiles, users } from "@/db/schema";
-import { computeExpiry, createSessionToken } from "@/lib/auth";
+import { createSessionToken } from "@/lib/auth";
 import type { Role } from "@/lib/rbac";
 
 export const SESSION_COOKIE = "hitaishi_session";
@@ -19,7 +19,7 @@ export interface CurrentUser {
 
 export async function createSession(userId: string): Promise<string> {
   const token = createSessionToken();
-  const expiresAt = computeExpiry(new Date(), SESSION_DAYS);
+  const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400000);
   await db.insert(authSessions).values({ userId, sessionToken: token, expiresAt });
 
   cookies().set(SESSION_COOKIE, token, {
