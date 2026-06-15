@@ -1,20 +1,23 @@
-import "./globals.css";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { Suspense } from "react";
+import "./globals.css";
 import TransitionLoader from "@/components/TransitionLoader";
+import { MotionProvider } from "@/components/motion/MotionProvider";
+import { IntroClipMount as IntroClip } from "@/components/intro/IntroClipMount";
 
-const fraunces = Fraunces({
+const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   style: ["normal", "italic"],
-  variable: "--font-serif",
+  variable: "--font-playfair",
   display: "swap",
 });
 
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -25,9 +28,11 @@ const jetbrains = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata = {
-  title: "Hitaishi",
-  description: "Private mentorship & guidance for JEE/IIT aspirants",
+export const metadata: Metadata = {
+  title: "Hitaishi — Your Wellwisher in the JEE Journey",
+  description:
+    "Hitaishi pairs JEE aspirants with IITian and top-ranker mentors — 1-on-1, online, flexible. Built for students, mentors, and coaching institutions in India.",
+  metadataBase: new URL("https://hitaishi.in"),
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -41,23 +46,35 @@ export const metadata = {
     statusBarStyle: "default",
     title: "Hitaishi",
   },
+  openGraph: {
+    title: "Hitaishi — Your Wellwisher in the JEE Journey",
+    description:
+      "Personal IIT/NIT mentors for every JEE aspirant. Flexible, online, around your coaching.",
+    type: "website",
+    locale: "en_IN",
+  },
 };
 
-export const viewport = {
-  themeColor: "#0b6445",
+export const viewport: Viewport = {
+  themeColor: "#f8fafc",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable}`}
+      dir="ltr"
+      data-scroll-behavior="smooth"
+      className={`${playfair.variable} ${inter.variable} ${jetbrains.variable} antialiased`}
     >
-      <body>
-        <Suspense fallback={null}>
-          <TransitionLoader />
-        </Suspense>
-        {children}
+      <body className="min-h-screen flex flex-col">
+        <MotionProvider>
+          <IntroClip />
+          <Suspense fallback={null}>
+            <TransitionLoader />
+          </Suspense>
+          {children}
+        </MotionProvider>
       </body>
     </html>
   );

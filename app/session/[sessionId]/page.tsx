@@ -10,19 +10,20 @@ import { sessions, sessionParticipants, users, profiles } from "@/db/schema";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function SessionRoomPage({ params }: PageProps) {
+  const { sessionId } = await params;
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.role !== "student" && user.role !== "mentor") {
     redirect(`/${user.role}/dashboard`);
   }
 
-  if (!UUID_RE.test(params.sessionId)) {
+  if (!UUID_RE.test(sessionId)) {
     return (
       <main className="min-h-screen bg-[#0c1612] text-white flex items-center justify-center p-6">
         <div className="text-center">
@@ -36,7 +37,7 @@ export default async function SessionRoomPage({ params }: PageProps) {
   }
 
   const sessionRow = await db.query.sessions.findFirst({
-    where: eq(sessions.id, params.sessionId),
+    where: eq(sessions.id, sessionId),
   });
 
   if (!sessionRow) {

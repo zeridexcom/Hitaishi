@@ -6,7 +6,8 @@ import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -15,7 +16,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     .set({ lastReadAt: new Date() })
     .where(
       and(
-        eq(conversationParticipants.conversationId, params.id),
+        eq(conversationParticipants.conversationId, id),
         eq(conversationParticipants.userId, user.id),
       ),
     );
