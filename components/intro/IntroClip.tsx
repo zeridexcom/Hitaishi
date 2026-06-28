@@ -70,7 +70,7 @@ export function IntroClip() {
               {/* Outer arc */}
               <motion.path
                 d="M 16 48 A 32 32 0 0 1 80 48"
-                stroke="#0284c7"
+                stroke="#2f7d5c"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 fill="none"
@@ -81,7 +81,7 @@ export function IntroClip() {
               {/* Middle arc */}
               <motion.path
                 d="M 26 48 A 22 22 0 0 1 70 48"
-                stroke="#0369a1"
+                stroke="#266649"
                 strokeWidth="2"
                 strokeLinecap="round"
                 fill="none"
@@ -92,7 +92,7 @@ export function IntroClip() {
               {/* Inner arc */}
               <motion.path
                 d="M 36 48 A 12 12 0 0 1 60 48"
-                stroke="#0c4a6e"
+                stroke="#0b6445"
                 strokeWidth="1.6"
                 strokeLinecap="round"
                 fill="none"
@@ -105,7 +105,7 @@ export function IntroClip() {
                 cx="48"
                 cy="48"
                 r="3"
-                fill="#0284c7"
+                fill="#2f7d5c"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.85, ease: EASE }}
@@ -116,7 +116,7 @@ export function IntroClip() {
                 cx="48"
                 cy="48"
                 r="34"
-                fill="#0284c7"
+                fill="#2f7d5c"
                 opacity="0.08"
                 initial={{ scale: 0.7, opacity: 0 }}
                 animate={{ scale: 1.1, opacity: 0.1 }}
@@ -126,7 +126,7 @@ export function IntroClip() {
             </motion.svg>
 
             {/* Wordmark */}
-            <h1 className="font-serif text-4xl font-medium tracking-tight text-[#0f172a] md:text-5xl">
+            <h1 className="font-serif text-4xl font-medium tracking-tight text-[#181d1a] md:text-5xl">
               {wordmark.map((c, i) => (
                 <span key={i} className="inline-block overflow-hidden align-bottom">
                   <motion.span
@@ -150,7 +150,7 @@ export function IntroClip() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 1.6 }}
-              className="max-w-[18rem] text-center text-[11px] font-medium uppercase tracking-[0.2em] text-[#475569] md:max-w-none md:text-xs md:tracking-[0.32em]"
+              className="max-w-[18rem] text-center text-[11px] font-medium uppercase tracking-[0.2em] text-[#3f4943] md:max-w-none md:text-xs md:tracking-[0.32em]"
             >
               your wellwisher in the JEE journey
             </motion.p>
@@ -163,7 +163,7 @@ export function IntroClip() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.6 }}
             aria-label="Skip intro"
-            className="absolute bottom-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-4 text-xs uppercase tracking-[0.18em] text-[#475569] transition-colors hover:bg-[#0284c7]/10 hover:text-[#0f172a]"
+            className="absolute bottom-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-4 text-xs uppercase tracking-[0.18em] text-[#3f4943] transition-colors hover:bg-[#2f7d5c]/10 hover:text-[#181d1a]"
           >
             Skip ↵
           </motion.button>

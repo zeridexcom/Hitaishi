@@ -11,14 +11,14 @@ export const BRAND = {
 export const NAV_LINKS = [
   { href: "/students", label: "Students" },
   { href: "/mentors", label: "Mentors" },
-  { href: "/institutions", label: "Institutions" },
+  { href: "/institution", label: "Institutions" },
   { href: "/pricing", label: "Pricing" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
 export const PRIMARY_CTAS = {
-  student: { href: "/students#get-mentor", label: "I'm a Student" },
-  mentor: { href: "/become-a-mentor", label: "Become a Mentor" },
-  institution: { href: "/institutions#partner", label: "Partner With Us" },
+  student: { href: "/students", label: "I'm a Student" },
+  mentor: { href: "/mentors", label: "Become a Mentor" },
+  institution: { href: "/institution", label: "Partner With Us" },
   pricing: { href: "/pricing", label: "See Full Pricing" },
 } as const;

@@ -37,12 +37,6 @@ export const AUDIENCES = [
     title: "Turn your JEE journey into someone else's breakthrough.",
     label: "I want to mentor →",
   },
-  {
-    href: "/institutions",
-    eyebrow: "Institutions",
-    title: "Your students deserve more than what a classroom alone can give.",
-    label: "Partner with us →",
-  },
 ] as const;
 
 export const PRICING_TEASER = {

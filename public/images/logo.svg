@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2f7d5c"/>
+      <stop offset="50%" stop-color="#0b6445"/>
+      <stop offset="100%" stop-color="#266649"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Shield / Peak Combo -->
+  <path d="M 200 50 L 100 150 L 100 240 C 100 300, 150 345, 200 350 C 250 345, 300 300, 300 240 L 300 150 Z" 
+        stroke="url(#greenGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Inner Shield / Peak Combo -->
+  <path d="M 200 92 L 130 162 L 130 240 C 130 280, 165 315, 200 320 C 235 315, 270 280, 270 240 L 270 162 L 200 92" 
+        stroke="url(#greenGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Person Head (circle) -->
+  <circle cx="200" cy="180" r="16" fill="url(#greenGrad)" />
+
+  <!-- Body & Rising Arrow Shaft -->
+  <path d="M 200 210 C 170 210, 160 235, 160 260 C 160 290, 185 300, 200 300 C 220 300, 255 285, 335 150" 
+        stroke="url(#greenGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Arrow Head -->
+  <path d="M 350 135 L 315 140 L 345 170 Z" 
+        fill="url(#greenGrad)" />
+</svg>

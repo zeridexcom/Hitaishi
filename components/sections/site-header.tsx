@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BRAND, NAV_LINKS, PRIMARY_CTAS } from "@/lib/content/brand";
@@ -34,9 +35,16 @@ export function SiteHeader() {
         {/* Logo */}
         <Link
           href="/"
-          className="px-5 font-serif text-lg font-medium tracking-tight text-[var(--color-fg)] md:text-xl"
+          className="px-5 flex items-center"
         >
-          {BRAND.name.toLowerCase()}
+          <Image
+            src="/images/logo.svg"
+            alt="Hitaishi"
+            width={120}
+            height={40}
+            className="h-10 w-auto"
+            priority
+          />
         </Link>
 
         {/* Divider */}

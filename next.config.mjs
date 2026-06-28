@@ -1,5 +1,3 @@
-import type { NextConfig } from "next";
-
 const isProd = process.env.NODE_ENV === "production";
 
 const CSP = [
@@ -9,6 +7,7 @@ const CSP = [
     : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://images.unsplash.com",
+  "media-src 'self' https://res.cloudinary.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.upstash.io https://*.supabase.co wss://*.supabase.co",
   "frame-ancestors 'none'",
@@ -35,13 +34,12 @@ const ADMIN_HEADERS = [
   { key: "Referrer-Policy", value: "no-referrer" },
 ];
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  serverExternalPackages: ["postgres"],
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [75, 90],
     minimumCacheTTL: 2678400,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

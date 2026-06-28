@@ -17,7 +17,7 @@ export function HeroSection() {
       id="hero"
       className="relative min-h-[640px] min-h-[100svh] w-full overflow-hidden bg-black"
     >
-      {/* Single static background image with zoom-out + continuous Ken Burns */}
+      {/* Background image with Ken Burns */}
       <motion.div
         className="absolute inset-0"
         initial={{ scale: 1.25 }}
@@ -73,7 +73,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4, ease: EASE }}
-          className="max-w-[20rem] text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-300 md:max-w-none md:text-xs md:tracking-[0.42em]"
+          className="max-w-[20rem] text-[10px] font-semibold uppercase tracking-[0.22em] text-green-300 md:max-w-none md:text-xs md:tracking-[0.42em]"
           style={{ textShadow: TEXT_SHADOW }}
         >
           {HERO.eyebrow}
@@ -104,7 +104,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 14, letterSpacing: "0.08em" }}
           animate={{ opacity: 1, y: 0, letterSpacing: "var(--tagline-tracking)" }}
           transition={{ duration: 1.0, delay: 2.0, ease: EASE }}
-          className="mt-7 max-w-[22rem] text-[11px] font-medium uppercase text-sky-100 md:mt-9 md:max-w-none md:text-sm"
+          className="mt-7 max-w-[22rem] text-[11px] font-medium uppercase text-green-100 md:mt-9 md:max-w-none md:text-sm"
           style={
             {
               textShadow: TEXT_SHADOW,
@@ -133,7 +133,7 @@ export function HeroSection() {
         >
           <Link
             href={PRIMARY_CTAS.student.href}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-7 py-3.5 text-sm font-medium text-white shadow-lg shadow-sky-900/40 transition-all hover:scale-[1.02] hover:bg-[var(--color-sky-hover)]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-7 py-3.5 text-sm font-medium text-white shadow-lg shadow-green-900/40 transition-all hover:scale-[1.02] hover:bg-[var(--color-sky-hover)]"
           >
             {PRIMARY_CTAS.student.label} <span aria-hidden>→</span>
           </Link>

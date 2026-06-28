@@ -39,7 +39,7 @@ export function PageBanner({ src, alt }: PageBannerProps) {
             className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
             style={{
               background:
-                "linear-gradient(0deg, rgba(2,132,199,0.15) 0%, transparent 100%)",
+                "linear-gradient(0deg, rgba(47,125,92,0.15) 0%, transparent 100%)",
             }}
           />
         </motion.div>
