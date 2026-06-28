@@ -4,3 +4,4 @@ export { Field, Input, Textarea, Select } from "./Input";
 export { Pill } from "./Pill";
 export { Table } from "./Table";
 export { Stepper } from "./Stepper";
+export { Modal } from "./Modal";
