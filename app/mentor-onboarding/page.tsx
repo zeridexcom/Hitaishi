@@ -1,4 +1,4 @@
-import { SiteHeader } from "@/components/sections/site-header";
+import Link from "next/link";
 import { SiteFooter } from "@/components/sections/site-footer";
 import { MentorOnboardingClient } from "./MentorOnboardingClient";
 
@@ -10,8 +10,17 @@ export const metadata = {
 export default function MentorOnboardingPage() {
   return (
     <>
-      <SiteHeader />
-      <main className="min-h-screen bg-surface text-ink relative overflow-hidden flex flex-col justify-between pt-24 pb-12">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-rule/40 w-full">
+        <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center justify-between">
+          <Link href="/" className="text-xs font-medium text-ink-soft hover:text-ink transition-colors flex items-center gap-1">
+            ← Back to site
+          </Link>
+          <span className="text-xs font-semibold uppercase tracking-wider text-ink-soft/75">
+            Mentor Application
+          </span>
+        </div>
+      </header>
+      <main className="min-h-screen bg-surface text-ink relative overflow-hidden flex flex-col justify-between pt-8 pb-12">
         {/* Dynamic Glowing Accent Background Lights */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
           <div className="absolute -top-[250px] -left-[250px] w-[700px] h-[700px] rounded-full bg-emerald-500/10 blur-[130px]" />
