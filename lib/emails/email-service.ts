@@ -1,10 +1,11 @@
-import { resend, RESEND_FROM, isRealEmailConfigured } from "@/lib/resend";
+import { resend, RESEND_FROM, RESEND_FROM_WELCOME, RESEND_FROM_ADMIN, RESEND_FROM_MENTOR, RESEND_FROM_INSTITUTION, isRealEmailConfigured } from "@/lib/resend";
 import { WelcomeEmail } from "@/components/emails/WelcomeEmail";
 import { OnboardingMatchEmail } from "@/components/emails/OnboardingMatchEmail";
 import { SessionScheduledEmail } from "@/components/emails/SessionScheduledEmail";
 import { DoubtAssignedEmail } from "@/components/emails/DoubtAssignedEmail";
 import { WeeklyDigestEmail } from "@/components/emails/WeeklyDigestEmail";
 import { InstitutionPartnerEmail } from "@/components/emails/InstitutionPartnerEmail";
+import { MentorWelcomeEmail } from "@/components/emails/MentorWelcomeEmail";
 import React from "react";
 
 // Log a mock email to node console for development review
@@ -29,7 +30,7 @@ export async function sendWelcomeEmail(toEmail: string, fullName: string, onboar
 
   try {
     const { data, error } = await resend.emails.send({
-      from: RESEND_FROM,
+      from: RESEND_FROM_WELCOME,
       to: toEmail,
       subject,
       react: React.createElement(WelcomeEmail, { fullName, onboardingLink }),
@@ -175,7 +176,7 @@ export async function sendInstitutionPartnerEmail(
 
   try {
     const { data, error } = await resend.emails.send({
-      from: RESEND_FROM,
+      from: RESEND_FROM_INSTITUTION,
       to: toEmail,
       subject,
       react: React.createElement(InstitutionPartnerEmail, { contactName, schoolName, onboardingLink }),
@@ -184,6 +185,32 @@ export async function sendInstitutionPartnerEmail(
     return { ok: true, data };
   } catch (err: any) {
     console.error("sendInstitutionPartnerEmail failed:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function sendMentorWelcomeEmail(
+  toEmail: string,
+  fullName: string,
+  onboardingLink: string
+) {
+  const subject = "Welcome to Hitaishi Mentorship! 🚀";
+  if (!isRealEmailConfigured || !resend) {
+    logMockEmail(toEmail, subject, { fullName, onboardingLink });
+    return { ok: true, mock: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM_MENTOR,
+      to: toEmail,
+      subject,
+      react: React.createElement(MentorWelcomeEmail, { fullName, onboardingLink }),
+    });
+    if (error) throw error;
+    return { ok: true, data };
+  } catch (err: any) {
+    console.error("sendMentorWelcomeEmail failed:", err);
     return { ok: false, error: err.message };
   }
 }

@@ -446,7 +446,7 @@ export default function InstitutionPage() {
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                href="/institution/onboarding"
+                href="/institution-onboarding"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-medium text-[var(--color-primary-deep)] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
               >
                 <Sparkles size={16} />

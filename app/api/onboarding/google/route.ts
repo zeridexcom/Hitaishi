@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, profiles } from "@/db/schema";
 import { createSession } from "@/lib/session";
+import { sendWelcomeEmail } from "@/lib/emails/email-service";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,10 @@ export async function POST(request: Request) {
 
       userId = result;
       role = "student";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
+      sendWelcomeEmail(cleanEmail, fullName || cleanEmail.split("@")[0], `${appUrl}/student-onboarding`).catch((e) => {
+        console.error("Failed to send student welcome email (Google OAuth):", e);
+      });
     }
 
     await createSession(userId);

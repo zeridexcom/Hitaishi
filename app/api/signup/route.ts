@@ -7,6 +7,7 @@ import { users, profiles } from "@/db/schema";
 import { hashPassword } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { studentSignupSchema } from "@/lib/signupSchema";
+import { sendWelcomeEmail } from "@/lib/emails/email-service";
 
 type Db = PostgresJsDatabase<typeof schema>;
 type Tx = Parameters<NonNullable<Parameters<Db["transaction"]>[0]>>[0];
@@ -108,6 +109,10 @@ export async function POST(request: Request) {
     });
 
     await createSession(userId);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
+    sendWelcomeEmail(email, data.fullName, `${appUrl}/student-onboarding`).catch((e) => {
+      console.error("Failed to send student welcome email:", e);
+    });
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err: unknown) {
     // postgres unique_violation — race between check and insert.

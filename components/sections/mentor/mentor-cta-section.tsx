@@ -59,7 +59,7 @@ export function MentorCtaSection() {
           className="mt-10 flex w-full max-w-md flex-col items-stretch gap-3 md:mt-12 md:w-auto md:max-w-none md:flex-row md:items-center md:justify-center"
         >
           <Link
-            href="/mentor/onboarding"
+            href="/mentor-onboarding"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-8 py-3.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] hover:bg-[var(--color-primary-hover)]"
           >
             Apply as a Mentor <span aria-hidden>→</span>

@@ -12,3 +12,7 @@ export const isRealEmailConfigured =
 
 export const resend = isRealEmailConfigured ? new Resend(apiKey) : null;
 export const RESEND_FROM = fromEmail;
+export const RESEND_FROM_WELCOME = process.env.WELCOME_EMAIL_FROM || RESEND_FROM;
+export const RESEND_FROM_ADMIN = process.env.ADMIN_EMAIL_FROM || RESEND_FROM;
+export const RESEND_FROM_MENTOR = process.env.WELCOME_EMAIL_FROM_MENTOR || RESEND_FROM;
+export const RESEND_FROM_INSTITUTION = process.env.WELCOME_EMAIL_FROM_INSTITUTION || RESEND_FROM;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { appendLead, clearLeads, readLeads } from "@/lib/leadsStore";
 import { leadSchema } from "@/lib/leadSchemas";
 import type { InstitutionPartner, LeadInput } from "@/lib/leadTypes";
+import { sendMentorWelcomeEmail, sendInstitutionPartnerEmail } from "@/lib/emails/email-service";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,17 @@ export async function POST(request: Request) {
 
   try {
     const lead = await appendLead(input);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
+    if (lead.type === "mentor-application") {
+      sendMentorWelcomeEmail(lead.email, lead.name, `${appUrl}/mentor-onboarding`).catch((e) => {
+        console.error("Failed to send mentor welcome email:", e);
+      });
+    } else if (lead.type === "institution-partner") {
+      const leadData = input as InstitutionPartner;
+      sendInstitutionPartnerEmail(lead.email, leadData.contactPerson, leadData.institutionName, `${appUrl}/institution-onboarding`).catch((e) => {
+        console.error("Failed to send institution welcome email:", e);
+      });
+    }
     return NextResponse.json({ ok: true, lead }, { status: 201 });
   } catch (err) {
     console.error("[/api/leads] persist failed", err);

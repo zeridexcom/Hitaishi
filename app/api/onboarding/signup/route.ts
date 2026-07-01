@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { users, profiles } from "@/db/schema";
 import { hashPassword } from "@/lib/auth";
 import { createSession } from "@/lib/session";
+import { sendWelcomeEmail } from "@/lib/emails/email-service";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,10 @@ export async function POST(request: Request) {
     });
 
     await createSession(userId);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
+    sendWelcomeEmail(cleanEmail, fullName, `${appUrl}/student-onboarding`).catch((e) => {
+      console.error("Failed to send student onboarding welcome email:", e);
+    });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[/api/onboarding/signup] error:", err);

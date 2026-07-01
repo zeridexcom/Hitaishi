@@ -5,7 +5,12 @@ import { StudentOnboardingClient } from "./StudentOnboardingClient";
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const user = await getCurrentUser();
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch (err) {
+    console.error('Failed to get current user:', err);
+  }
   if (user) {
     redirect(`/${user.role}/dashboard`);
   }

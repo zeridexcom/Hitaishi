@@ -6,6 +6,7 @@ import {
   sendDoubtAssignedEmail,
   sendWeeklyDigestEmail,
   sendInstitutionPartnerEmail,
+  sendMentorWelcomeEmail,
 } from "./email-service";
 
 describe("email-service", () => {
@@ -76,7 +77,16 @@ describe("email-service", () => {
       "test@example.com",
       "Principal Sharma",
       "DPS RK Puram",
-      "http://localhost:3000/partner-onboard"
+    );
+    expect(res.ok).toBe(true);
+    expect(res.mock).toBe(true);
+  });
+
+  it("sendMentorWelcomeEmail runs successfully", async () => {
+    const res = await sendMentorWelcomeEmail(
+      "test@example.com",
+      "Priya Iyer",
+      "http://localhost:3000/mentor-onboard"
     );
     expect(res.ok).toBe(true);
     expect(res.mock).toBe(true);
