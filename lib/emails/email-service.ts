@@ -6,6 +6,7 @@ import { DoubtAssignedEmail } from "@/components/emails/DoubtAssignedEmail";
 import { WeeklyDigestEmail } from "@/components/emails/WeeklyDigestEmail";
 import { InstitutionPartnerEmail } from "@/components/emails/InstitutionPartnerEmail";
 import { MentorWelcomeEmail } from "@/components/emails/MentorWelcomeEmail";
+import { AdminNotificationEmail } from "@/components/emails/AdminNotificationEmail";
 import React from "react";
 
 // Log a mock email to node console for development review
@@ -211,6 +212,34 @@ export async function sendMentorWelcomeEmail(
     return { ok: true, data };
   } catch (err: any) {
     console.error("sendMentorWelcomeEmail failed:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function sendAdminNotificationEmail(
+  leadType: string,
+  name: string,
+  email: string,
+  details: Record<string, any>
+) {
+  const toEmail = "zeridex.com@gmail.com";
+  const subject = `New Lead Submitted: ${leadType} — Hitaishi 🚀`;
+  if (!isRealEmailConfigured || !resend) {
+    logMockEmail(toEmail, subject, { leadType, name, email, details });
+    return { ok: true, mock: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM_ADMIN,
+      to: toEmail,
+      subject,
+      react: React.createElement(AdminNotificationEmail, { leadType, name, email, details }),
+    });
+    if (error) throw error;
+    return { ok: true, data };
+  } catch (err: any) {
+    console.error("sendAdminNotificationEmail failed:", err);
     return { ok: false, error: err.message };
   }
 }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { appendLead, clearLeads, readLeads } from "@/lib/leadsStore";
 import { leadSchema } from "@/lib/leadSchemas";
 import type { InstitutionPartner, LeadInput } from "@/lib/leadTypes";
-import { sendMentorWelcomeEmail, sendInstitutionPartnerEmail } from "@/lib/emails/email-service";
+import { sendMentorWelcomeEmail, sendInstitutionPartnerEmail, sendAdminNotificationEmail } from "@/lib/emails/email-service";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +56,13 @@ export async function POST(request: Request) {
   try {
     const lead = await appendLead(input);
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
+    
+    // Trigger admin notification
+    const { type: leadType, name: leadName, email: leadEmail, ...details } = input;
+    sendAdminNotificationEmail(leadType, leadName, leadEmail, details).catch((e) => {
+      console.error("Failed to send admin notification email:", e);
+    });
+
     if (lead.type === "mentor-application") {
       sendMentorWelcomeEmail(lead.email, lead.name, `${appUrl}/mentor-onboarding`).catch((e) => {
         console.error("Failed to send mentor welcome email:", e);

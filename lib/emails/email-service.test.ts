@@ -7,6 +7,7 @@ import {
   sendWeeklyDigestEmail,
   sendInstitutionPartnerEmail,
   sendMentorWelcomeEmail,
+  sendAdminNotificationEmail,
 } from "./email-service";
 
 describe("email-service", () => {
@@ -88,6 +89,17 @@ describe("email-service", () => {
       "test@example.com",
       "Priya Iyer",
       "http://localhost:3000/mentor-onboard"
+    );
+    expect(res.ok).toBe(true);
+    expect(res.mock).toBe(true);
+  });
+
+  it("sendAdminNotificationEmail runs successfully", async () => {
+    const res = await sendAdminNotificationEmail(
+      "mentor-application",
+      "Priya Iyer",
+      "test@example.com",
+      { city: "Delhi", gradYear: "2024" }
     );
     expect(res.ok).toBe(true);
     expect(res.mock).toBe(true);
