@@ -65,7 +65,7 @@ export const profiles = pgTable("profiles", {
   gender: varchar("gender", { length: 20 }),
   parentName: varchar("parent_name", { length: 120 }),
   parentPhone: varchar("parent_phone", { length: 20 }),
-  addressLine1: text("address_line1"),
+  addressLine1: text("address_line_1"),
   city: varchar("city", { length: 80 }),
   state: varchar("state", { length: 80 }),
   pincode: varchar("pincode", { length: 10 }),

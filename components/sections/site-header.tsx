@@ -29,48 +29,48 @@ export function SiteHeader() {
   return (
     <header className="fixed top-4 left-1/2 z-40 w-full max-w-[calc(100vw-2rem)] -translate-x-1/2 px-0 md:w-auto md:max-w-none">
       <div
-        className={`mx-auto flex w-fit items-center gap-1 rounded-full border border-[var(--color-border)] transition-all duration-300 ${dockBg}`}
+        className={`mx-auto flex w-fit items-center gap-0.5 rounded-full border border-[var(--color-border)] p-0.5 transition-all duration-300 ${dockBg}`}
         style={{ boxShadow: DOCK_SHADOW }}
       >
         {/* Logo */}
         <Link
           href="/"
-          className="px-5 flex items-center"
+          className="px-3 flex items-center"
         >
           <Image
             src="/images/logo.svg"
             alt="Hitaishi"
-            width={120}
-            height={40}
-            className="h-10 w-auto"
+            width={72}
+            height={24}
+            className="h-6 w-auto"
             priority
           />
         </Link>
-
+ 
         {/* Divider */}
-        <span className="hidden h-6 w-px bg-[var(--color-border)] md:block" aria-hidden />
-
+        <span className="hidden h-4 w-px bg-[var(--color-border)] md:block" aria-hidden />
+ 
         {/* Nav links */}
         <nav className="hidden items-center md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-fg)]"
+              className="rounded-full px-3 py-1 text-xs font-medium text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-fg)]"
             >
               {link.label}
             </Link>
           ))}
         </nav>
-
+ 
         {/* Single primary CTA */}
         <Link
           href={PRIMARY_CTAS.student.href}
-          className="ml-1 hidden rounded-full bg-[var(--color-sky)] px-5 py-2 text-sm font-medium text-white transition-all hover:bg-[var(--color-sky-hover)] md:inline-flex md:items-center md:gap-1.5"
+          className="ml-0.5 hidden rounded-full bg-[var(--color-sky)] px-3.5 py-1 text-xs font-medium text-white transition-all hover:bg-[var(--color-sky-hover)] md:inline-flex md:items-center md:gap-1"
         >
-          {PRIMARY_CTAS.student.label} <span aria-hidden>→</span>
+          {PRIMARY_CTAS.student.label} <span aria-hidden className="text-[10px]">→</span>
         </Link>
-
+ 
         {/* Mobile toggle */}
         <button
           type="button"
@@ -78,9 +78,9 @@ export function SiteHeader() {
           aria-expanded={isMenuOpen}
           aria-controls="mobile-nav-menu"
           onClick={() => setIsMenuOpen((open) => !open)}
-          className="ml-1 mr-1.5 inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-fg)] hover:bg-[var(--color-surface-hover)] md:hidden"
+          className="ml-0.5 mr-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-fg)] hover:bg-[var(--color-surface-hover)] md:hidden"
         >
-          {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          {isMenuOpen ? <X size={16} /> : <Menu size={16} />}
         </button>
       </div>
 

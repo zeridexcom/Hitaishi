@@ -37,7 +37,7 @@ export function SiteFooter() {
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 flex items-end justify-center overflow-hidden"
         style={{
-          height: "400px",
+          height: "600px",
           WebkitMaskImage:
             "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
           maskImage:
@@ -48,9 +48,9 @@ export function SiteFooter() {
         <Image
           src="/images/logo-watermark.svg"
           alt=""
-          width={1200}
-          height={300}
-          className="h-auto w-full max-w-[1200px]"
+          width={2200}
+          height={550}
+          className="h-auto w-full max-w-[1600px] md:max-w-[2200px]"
           style={{ opacity: 0.1 }}
           priority={false}
         />
@@ -148,7 +148,7 @@ export function SiteFooter() {
         </div>
 
         {/* Spacer — gives the watermark breathing room and pushes the copyright bar to the bottom */}
-        <div className="h-80 md:h-[420px]" aria-hidden="true" />
+        <div className="h-96 md:h-[500px]" aria-hidden="true" />
 
         {/* Copyright bar */}
         <div className="relative flex flex-col items-start justify-between gap-3 border-t border-[var(--color-border)] pt-6 md:flex-row md:items-center">

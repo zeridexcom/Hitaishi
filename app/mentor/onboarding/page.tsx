@@ -5,7 +5,6 @@ const STEPS = [
   { label: "Profile" },
   { label: "Subjects" },
   { label: "Availability" },
-  { label: "Payout" },
 ];
 
 const SUBJECTS = ["Physics", "Chemistry", "Mathematics"] as const;
@@ -27,28 +26,40 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const SLOTS = ["Mor", "Aft", "Eve", "Night"];
 
 interface Props {
-  searchParams?: { step?: string };
+  searchParams?: any;
 }
 
-export default function MentorOnboardingPage({ searchParams }: Props) {
-  const step = Math.max(0, Math.min(3, Number(searchParams?.step ?? 0)));
+export default async function MentorOnboardingPage({ searchParams }: Props) {
+  const resolved = await searchParams;
+  const step = Math.max(0, Math.min(2, Number(resolved?.step ?? 0)));
 
   return (
-    <main className="min-h-screen bg-surface text-ink">
-      <header className="border-b border-rule bg-surface-card px-6 md:px-10 py-5 flex items-center justify-between">
-        <Link href="/" className="font-serif text-xl text-primary-deep">
-          Hitaishi
-        </Link>
-        <div className="meta">M.02 — MENTOR ONBOARDING</div>
-      </header>
+    <main className="min-h-screen bg-surface text-ink relative overflow-hidden flex flex-col justify-between">
+      {/* Dynamic Glowing Accent Background Lights */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+        <div className="absolute -top-[250px] -left-[250px] w-[700px] h-[700px] rounded-full bg-emerald-500/10 blur-[130px]" />
+        <div className="absolute -bottom-[250px] -right-[250px] w-[700px] h-[700px] rounded-full bg-secondary/8 blur-[130px]" />
+      </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <Stepper steps={STEPS} current={step} className="mb-10" />
+      <div className="relative z-10 w-full flex flex-col flex-grow">
+        <header className="border-b border-rule bg-surface-card/60 backdrop-blur-md px-6 md:px-10 py-4 flex items-center justify-between">
+          <Link href="/" className="font-serif text-xl font-medium tracking-tight text-primary-deep hover:opacity-80 transition-opacity">
+            Hitaishi
+          </Link>
+          <div className="text-xs font-mono tracking-widest text-ink-faint uppercase bg-surface-elevated/80 px-3 py-1 rounded-full border border-rule">
+            Mentor Onboarding
+          </div>
+        </header>
 
-        {step === 0 && <Step1Profile />}
-        {step === 1 && <Step2Subjects />}
-        {step === 2 && <Step3Availability />}
-        {step === 3 && <Step4Payout />}
+        <div className="max-w-3xl w-full mx-auto px-6 py-10 md:py-16 flex-grow flex flex-col justify-center">
+          <Stepper steps={STEPS} current={step} className="mb-8" />
+
+          <div className="relative">
+            {step === 0 && <Step1Profile />}
+            {step === 1 && <Step2Subjects />}
+            {step === 2 && <Step3Availability />}
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -56,11 +67,11 @@ export default function MentorOnboardingPage({ searchParams }: Props) {
 
 function Step1Profile() {
   return (
-    <Card>
-      <CardBody>
-        <div className="meta">STEP 1 OF 4 · 25%</div>
-        <h2 className="font-serif text-3xl mt-1">Tell students about you</h2>
-        <p className="text-sm text-ink-soft mt-2">
+    <Card className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-lift rounded-3xl relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-primary before:to-secondary">
+      <CardBody className="p-8 md:p-10">
+        <div className="meta text-xs tracking-widest font-mono text-primary font-semibold">STEP 1 OF 3 · 33%</div>
+        <h2 className="font-serif text-3xl font-medium mt-2 text-ink">Tell students about you</h2>
+        <p className="text-sm text-ink-soft mt-2 leading-relaxed">
           Profile information is automatically cross-referenced with IIT
           institutional databases.
         </p>
@@ -70,12 +81,12 @@ function Step1Profile() {
           method="get"
           className="grid gap-4 mt-8"
         >
-          <div className="flex items-center gap-4 p-4 bg-surface-elevated rounded-card">
-            <div className="w-20 h-20 rounded-full bg-surface-card border border-rule-strong flex items-center justify-center text-3xl text-ink-faint">
+          <div className="flex items-center gap-4 p-4 bg-surface-elevated/50 rounded-card border border-rule">
+            <div className="w-20 h-20 rounded-full bg-white border border-rule-strong flex items-center justify-center text-3xl text-ink-faint">
               📷
             </div>
             <div>
-              <div className="text-sm font-medium">Professional headshot</div>
+              <div className="text-sm font-medium text-ink">Professional headshot</div>
               <div className="meta mt-1">Shown to prospective students</div>
               <button type="button" className="chip-ghost text-xs mt-2">
                 Upload photo
@@ -140,11 +151,11 @@ function Step1Profile() {
 
 function Step2Subjects() {
   return (
-    <Card>
-      <CardBody>
-        <div className="meta">STEP 2 OF 4 · 50%</div>
-        <h2 className="font-serif text-3xl mt-1">What you teach</h2>
-        <p className="text-sm text-ink-soft mt-2">
+    <Card className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-lift rounded-3xl relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-primary before:to-secondary">
+      <CardBody className="p-8 md:p-10">
+        <div className="meta text-xs tracking-widest font-mono text-primary font-semibold">STEP 2 OF 3 · 67%</div>
+        <h2 className="font-serif text-3xl font-medium mt-2 text-ink">What you teach</h2>
+        <p className="text-sm text-ink-soft mt-2 leading-relaxed">
           Subject expertise and pedagogical style. Pick what&apos;s true, not what
           markets well.
         </p>
@@ -156,9 +167,9 @@ function Step2Subjects() {
         >
           <div className="grid gap-3">
             {SUBJECTS.map((s) => (
-              <div key={s} className="border border-rule rounded-card p-4">
+              <div key={s} className="border border-rule bg-surface-card/50 rounded-card p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="font-medium">{s}</div>
+                  <div className="font-medium text-ink">{s}</div>
                   <div className="flex gap-2">
                     {LEVELS.map((lvl) => (
                       <label key={lvl} className="cursor-pointer">
@@ -168,7 +179,7 @@ function Step2Subjects() {
                           value={lvl}
                           className="sr-only peer"
                         />
-                        <span className="px-3 py-1.5 rounded-pill text-xs font-mono uppercase tracking-wider border border-rule-strong bg-surface-card peer-checked:bg-primary peer-checked:text-primary-on peer-checked:border-primary">
+                        <span className="px-3 py-1.5 rounded-pill text-xs font-mono uppercase tracking-wider border border-rule-strong bg-white/50 peer-checked:bg-primary peer-checked:text-primary-on peer-checked:border-primary transition-all duration-200">
                           {lvl}
                         </span>
                       </label>
@@ -184,7 +195,7 @@ function Step2Subjects() {
               {COHORTS.map((c) => (
                 <label key={c} className="cursor-pointer">
                   <input type="checkbox" name="batches" value={c} className="sr-only peer" />
-                  <span className="px-3 py-2 rounded-pill text-sm border border-rule-strong bg-surface-card peer-checked:bg-primary peer-checked:text-primary-on peer-checked:border-primary">
+                  <span className="px-3 py-2 rounded-pill text-sm border border-rule-strong bg-white/50 peer-checked:bg-primary peer-checked:text-primary-on peer-checked:border-primary transition-all duration-200">
                     {c}
                   </span>
                 </label>
@@ -197,7 +208,7 @@ function Step2Subjects() {
               {TEACHING_TAGS.map((t) => (
                 <label key={t} className="cursor-pointer">
                   <input type="checkbox" name="style" value={t} className="sr-only peer" />
-                  <span className="px-3 py-1.5 rounded-pill text-xs font-mono uppercase tracking-wider border border-rule-strong bg-surface-card peer-checked:bg-secondary peer-checked:text-white peer-checked:border-secondary">
+                  <span className="px-3 py-1.5 rounded-pill text-xs font-mono uppercase tracking-wider border border-rule-strong bg-white/50 peer-checked:bg-secondary peer-checked:text-white peer-checked:border-secondary transition-all duration-200">
                     {t}
                   </span>
                 </label>
@@ -226,29 +237,29 @@ function Step2Subjects() {
 
 function Step3Availability() {
   return (
-    <Card>
-      <CardBody>
-        <div className="meta">STEP 3 OF 4 · 75%</div>
-        <h2 className="font-serif text-3xl mt-1">When you&apos;re available</h2>
-        <p className="text-sm text-ink-soft mt-2">
+    <Card className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-lift rounded-3xl relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-primary before:to-secondary">
+      <CardBody className="p-8 md:p-10">
+        <div className="meta text-xs tracking-widest font-mono text-primary font-semibold">STEP 3 OF 3 · 100%</div>
+        <h2 className="font-serif text-3xl font-medium mt-2 text-ink">When you&apos;re available</h2>
+        <p className="text-sm text-ink-soft mt-2 leading-relaxed">
           Tap to toggle blocks. You can refine this any time after activation.
         </p>
 
         <form
-          action="/mentor/onboarding?step=3"
+          action="/mentor/dashboard"
           method="get"
           className="grid gap-5 mt-8"
         >
           <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr] gap-1 text-center">
             <div />
             {SLOTS.map((s) => (
-              <div key={s} className="meta py-2">
+              <div key={s} className="meta py-2 text-ink-soft font-medium">
                 {s}
               </div>
             ))}
             {DAYS.map((d) => (
               <div key={d} className="contents">
-                <div className="meta py-2 text-left">{d}</div>
+                <div className="meta py-2 text-left font-semibold text-ink-soft">{d}</div>
                 {SLOTS.map((s) => (
                   <label key={`${d}-${s}`} className="cursor-pointer">
                     <input
@@ -256,7 +267,7 @@ function Step3Availability() {
                       name={`avail-${d}-${s}`}
                       className="sr-only peer"
                     />
-                    <span className="block h-10 rounded-input bg-surface-card border border-rule peer-checked:bg-primary peer-checked:border-primary" />
+                    <span className="block h-10 rounded-input bg-white/50 border border-rule-strong peer-checked:bg-primary peer-checked:border-primary transition-colors duration-150" />
                   </label>
                 ))}
               </div>
@@ -282,84 +293,8 @@ function Step3Availability() {
             </Field>
           </div>
 
-          <input type="hidden" name="step" value="3" />
-          <div className="flex justify-between mt-2">
+          <div className="flex justify-between mt-6">
             <Link href="/mentor/onboarding?step=1" className="chip-ghost">
-              ← Back
-            </Link>
-            <Button type="submit" size="lg">
-              Continue →
-            </Button>
-          </div>
-        </form>
-      </CardBody>
-    </Card>
-  );
-}
-
-function Step4Payout() {
-  return (
-    <Card>
-      <CardBody>
-        <div className="meta">STEP 4 OF 4 · 100%</div>
-        <h2 className="font-serif text-3xl mt-1">Get paid</h2>
-        <p className="text-sm text-ink-soft mt-2">
-          Payouts via Razorpay Routes. Bank verification is instant. KYC + PAN
-          required by Indian tax law.
-        </p>
-
-        <form
-          action="/mentor/dashboard"
-          method="get"
-          className="grid gap-4 mt-8"
-        >
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field label="Account holder name" required>
-              <Input name="holderName" required />
-            </Field>
-            <Field label="PAN number" required>
-              <Input
-                name="pan"
-                pattern="[A-Z]{5}[0-9]{4}[A-Z]"
-                placeholder="ABCDE1234F"
-                required
-              />
-            </Field>
-            <Field label="Bank account number" required>
-              <Input name="account" inputMode="numeric" required />
-            </Field>
-            <Field label="Confirm account number" required>
-              <Input name="accountConfirm" inputMode="numeric" required />
-            </Field>
-            <Field label="IFSC code" required>
-              <Input name="ifsc" pattern="[A-Z]{4}0[A-Z0-9]{6}" required />
-            </Field>
-            <Field label="Bank name (auto from IFSC)">
-              <Input name="bankName" readOnly placeholder="HDFC Bank — Indiranagar branch" />
-            </Field>
-          </div>
-
-          <div className="bg-primary-soft border border-primary/30 rounded-card p-4 flex items-center gap-3 text-sm">
-            <Pill tone="primary">RAZORPAY</Pill>
-            <div>
-              End-to-end encrypted payouts · TDS-compliant · Instant settlement
-              after each session.
-            </div>
-          </div>
-
-          <label className="flex items-start gap-2 text-sm text-ink-soft">
-            <input type="checkbox" required className="mt-1" />
-            <span>
-              I agree to the{" "}
-              <a className="underline" href="/policy/mentor-payout-terms">
-                Mentor Payout Terms
-              </a>{" "}
-              and the platform&apos;s academic integrity policy.
-            </span>
-          </label>
-
-          <div className="flex justify-between mt-4">
-            <Link href="/mentor/onboarding?step=2" className="chip-ghost">
               ← Back
             </Link>
             <Button type="submit" size="lg">

@@ -6,7 +6,7 @@ export const HERO = {
   trustLine: "Mentors from IITs & NITs · Flexible scheduling · Works alongside any coaching",
   pullQuote: "Coaching gives you the syllabus. Hitaishi gives you the edge.",
   image: {
-    src: "/images/hitaishi/student-night-study.png",
+    src: "/images/hitaishi/student-night-study-v2.png",
     alt: "A JEE aspirant studying late at a desk under a warm lamp — the moment a wellwisher steps in.",
   },
 } as const;
@@ -36,6 +36,12 @@ export const AUDIENCES = [
     eyebrow: "Mentors",
     title: "Turn your JEE journey into someone else's breakthrough.",
     label: "I want to mentor →",
+  },
+  {
+    href: "/institution",
+    eyebrow: "Institutions",
+    title: "Your students deserve more than what a classroom alone can give.",
+    label: "Partner with us →",
   },
 ] as const;
 

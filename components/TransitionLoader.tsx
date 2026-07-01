@@ -5,13 +5,30 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 export default function TransitionLoader() {
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStartTime, setLoadingStartTime] = useState<number | null>(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Hide loader when the page pathname or search parameters change
+  const triggerLoading = () => {
+    setIsLoading(true);
+    setLoadingStartTime(Date.now());
+  };
+
+  // Hide loader when the page pathname or search parameters change, enforcing a min delay
   useEffect(() => {
-    setIsLoading(false);
-  }, [pathname, searchParams]);
+    if (!isLoading || !loadingStartTime) return;
+
+    const MIN_LOAD_TIME = 1500; // 1.5 seconds minimum delay
+    const elapsedTime = Date.now() - loadingStartTime;
+    const remainingTime = Math.max(0, MIN_LOAD_TIME - elapsedTime);
+
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      setLoadingStartTime(null);
+    }, remainingTime);
+
+    return () => clearTimeout(timer);
+  }, [pathname, searchParams, isLoading, loadingStartTime]);
 
   useEffect(() => {
     const handleLinkClick = (e: MouseEvent) => {
@@ -32,7 +49,7 @@ export default function TransitionLoader() {
         ) {
           const currentUrl = window.location.pathname + window.location.search;
           if (href !== currentUrl) {
-            setIsLoading(true);
+            triggerLoading();
           }
         }
       }
@@ -42,7 +59,7 @@ export default function TransitionLoader() {
       const form = e.target as HTMLFormElement;
       // Show loader on form submission (login, demo login, etc.)
       if (form.getAttribute("target") !== "_blank") {
-        setIsLoading(true);
+        triggerLoading();
       }
     };
 
@@ -54,14 +71,14 @@ export default function TransitionLoader() {
         const type = button.getAttribute("type");
         const form = button.closest("form");
         if (form && type === "submit" && form.getAttribute("target") !== "_blank") {
-          setIsLoading(true);
+          triggerLoading();
         }
       }
     };
 
     const handlePopState = () => {
       // Show loader for back/forward navigation
-      setIsLoading(true);
+      triggerLoading();
     };
 
     document.addEventListener("click", handleLinkClick);
@@ -82,6 +99,7 @@ export default function TransitionLoader() {
     if (isLoading) {
       const timer = setTimeout(() => {
         setIsLoading(false);
+        setLoadingStartTime(null);
       }, 8000);
       return () => clearTimeout(timer);
     }
@@ -90,21 +108,24 @@ export default function TransitionLoader() {
   if (!isLoading) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-surface transition-opacity duration-300">
       <div className="flex flex-col items-center gap-6">
-        {/* Animated Double-ring Premium Loader */}
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 rounded-full border-4 border-primary-soft/60"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-primary/40 border-b-transparent border-l-transparent animate-spin-slow"></div>
-          <div className="absolute inset-2 rounded-full border-4 border-t-secondary border-r-transparent border-b-secondary/40 border-l-transparent animate-spin-reverse-slow"></div>
+        {/* Orbiting Ring Loader */}
+        <div className="relative w-16 h-16 flex items-center justify-center">
+          {/* Outer glowing ripple */}
+          <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping opacity-75" />
+          {/* Main rotating ring */}
+          <div className="w-12 h-12 rounded-full border-2 border-t-primary border-r-primary/30 border-b-transparent border-l-transparent animate-spin" />
+          {/* Inner reverse-spinning ring */}
+          <div className="absolute w-6 h-6 rounded-full border border-t-secondary border-r-transparent border-b-transparent border-l-secondary/40 animate-[spin_1s_infinite_linear_reverse]" />
         </div>
 
         {/* Elegant Logo / Loading Text */}
         <div className="text-center">
-          <h2 className="font-serif italic text-3xl font-medium text-primary-deep tracking-wide animate-pulse">
+          <h2 className="font-serif italic text-2xl font-semibold text-primary tracking-wide animate-pulse">
             Hitaishi
           </h2>
-          <p className="font-mono text-[10px] text-ink-faint tracking-widest uppercase mt-2">
+          <p className="font-mono text-[9px] text-ink-soft tracking-widest uppercase mt-2.5">
             Loading...
           </p>
         </div>

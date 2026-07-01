@@ -17,6 +17,7 @@ const PUBLIC_PREFIXES = ["/_next/"];
 const KNOWN_WEBHOOKS = new Set<string>([
   "/api/webhooks/msg91",
   "/api/webhooks/resend",
+  "/api/webhooks/razorpay",
 ]);
 
 const ROLE_PREFIX: Record<Role, string> = {

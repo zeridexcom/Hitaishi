@@ -16,6 +16,7 @@
     "db:seed": "tsx --env-file=.env db/seed.ts"
   },
   "dependencies": {
+    "@dotlottie/react-player": "^1.6.19",
     "@hookform/resolvers": "^5.4.0",
     "@supabase/supabase-js": "^2.106.2",
     "@upstash/ratelimit": "^2.0.8",
@@ -23,6 +24,7 @@
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.36.4",
     "framer-motion": "^12.38.0",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^1.14.0",
     "next": "16.2.9",
     "playwright": "^1.60.0",
@@ -30,6 +32,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.78.0",
+    "resend": "^6.16.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

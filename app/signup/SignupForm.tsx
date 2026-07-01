@@ -80,7 +80,7 @@ export function SignupForm() {
         throw new Error(json.error ?? `Request failed (${res.status})`);
       }
       reset();
-      router.push("/student/onboarding");
+      router.push("/student-onboarding");
     } catch (err) {
       setSubmitting(false);
       setServerError(err instanceof Error ? err.message : "Something went wrong.");

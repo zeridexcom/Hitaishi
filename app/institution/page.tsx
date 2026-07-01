@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { SiteHeader } from "@/components/sections/site-header";
 import { SiteFooter } from "@/components/sections/site-footer";
 import { motion, useInView } from "framer-motion";
@@ -444,14 +445,14 @@ export default function InstitutionPage() {
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <a
-                href="mailto:hello@hitaishi.in?subject=Institution%20Partnership%20Enquiry"
+              <Link
+                href="/institution/onboarding"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-medium text-[var(--color-primary-deep)] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
               >
                 <Sparkles size={16} />
                 Schedule a Demo
                 <ArrowRight size={16} />
-              </a>
+              </Link>
               <a
                 href="https://wa.me/919964081555?text=Hi%2C%20I%27m%20interested%20in%20the%20institutional%20partnership%20program."
                 target="_blank"

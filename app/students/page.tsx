@@ -396,7 +396,7 @@ function CtaBanner() {
           className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center md:mt-12"
         >
           <Link
-            href="/student/onboarding"
+            href="/student-onboarding"
             className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-8 py-3.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] hover:bg-[var(--color-sky-hover)]"
           >
             Sign Up & Get Matched <span aria-hidden>→</span>

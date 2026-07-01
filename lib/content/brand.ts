@@ -17,8 +17,8 @@ export const NAV_LINKS = [
 ] as const;
 
 export const PRIMARY_CTAS = {
-  student: { href: "/students", label: "I'm a Student" },
-  mentor: { href: "/mentors", label: "Become a Mentor" },
+  student: { href: "/student-onboarding", label: "I'm a Student" },
+  mentor: { href: "/become-a-mentor", label: "Become a Mentor" },
   institution: { href: "/institution", label: "Partner With Us" },
   pricing: { href: "/pricing", label: "See Full Pricing" },
 } as const;
