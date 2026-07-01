@@ -16,7 +16,6 @@
     "db:seed": "tsx --env-file=.env db/seed.ts"
   },
   "dependencies": {
-    "@dotlottie/react-player": "^1.6.19",
     "@hookform/resolvers": "^5.4.0",
     "@supabase/supabase-js": "^2.106.2",
     "@upstash/ratelimit": "^2.0.8",
