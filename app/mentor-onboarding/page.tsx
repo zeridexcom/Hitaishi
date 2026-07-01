@@ -1,6 +1,6 @@
 import { SiteHeader } from "@/components/sections/site-header";
 import { SiteFooter } from "@/components/sections/site-footer";
-import { MentorOnboardingForm } from "@/components/forms/mentor-onboarding-form";
+import { MentorOnboardingClient } from "./MentorOnboardingClient";
 
 export const metadata = {
   title: "Become a Mentor — Hitaishi",
@@ -26,9 +26,7 @@ export default function MentorOnboardingPage() {
                 Join our network of IITian mentors and guide aspiring students.
               </p>
             </div>
-            <div className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-lift rounded-3xl p-8 md:p-10 relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-primary before:to-secondary">
-              <MentorOnboardingForm />
-            </div>
+            <MentorOnboardingClient />
           </div>
         </div>
       </main>

@@ -1,6 +1,6 @@
 import { SiteHeader } from "@/components/sections/site-header";
 import { SiteFooter } from "@/components/sections/site-footer";
-import { InstitutionLeadForm } from "@/components/forms/institution-lead-form";
+import { InstitutionOnboardingClient } from "./InstitutionOnboardingClient";
 
 export const metadata = {
   title: "Partner Institution Onboarding — Hitaishi",
@@ -26,9 +26,7 @@ export default function InstitutionOnboardingPage() {
                 Bring 1-on-1 IITian mentorship to your students.
               </p>
             </div>
-            <div className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-lift rounded-3xl p-8 md:p-10 relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-primary before:to-secondary">
-              <InstitutionLeadForm />
-            </div>
+            <InstitutionOnboardingClient />
           </div>
         </div>
       </main>

@@ -77,6 +77,7 @@ describe("email-service", () => {
       "test@example.com",
       "Principal Sharma",
       "DPS RK Puram",
+      "http://localhost:3000/partner-onboard"
     );
     expect(res.ok).toBe(true);
     expect(res.mock).toBe(true);
