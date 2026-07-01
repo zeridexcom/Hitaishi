@@ -1,11 +1,11 @@
 export const BRAND = {
-  name: "Hitaishi",
+  name: "Hitaishii",
   tagline: "Your Wellwisher in the JEE Journey",
-  positioning: "Coaching gives you the syllabus. Hitaishi gives you the edge.",
-  domain: "hitaishi.in",
+  positioning: "Coaching gives you the syllabus. Hitaishii gives you the edge.",
+  domain: "hitaishii.com",
   city: "Hyderabad, India",
   whatsapp: "+91 99640 81555",
-  email: "hello@hitaishi.in",
+  email: "hello@hitaishii.com",
 } as const;
 
 export const NAV_LINKS = [

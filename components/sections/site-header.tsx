@@ -35,16 +35,19 @@ export function SiteHeader() {
         {/* Logo */}
         <Link
           href="/"
-          className="px-3 flex items-center"
+          className="pl-4 pr-3 py-1.5 flex items-center gap-2"
         >
           <Image
             src="/images/logo.svg"
-            alt="Hitaishi"
-            width={72}
-            height={24}
-            className="h-6 w-auto"
+            alt="Hitaishii"
+            width={22}
+            height={22}
+            className="h-5 w-5"
             priority
           />
+          <span className="font-serif text-sm font-bold text-[var(--color-fg)] tracking-tight">
+            hitaishii
+          </span>
         </Link>
  
         {/* Divider */}
